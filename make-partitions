@@ -1,0 +1,29 @@
+#!/bin/bash
+
+CFDEV=/dev/hda
+echo -e 'n\np\n\n\n+1G\nn\np\n\n\n\np\nw\n' | fdisk ${CFDEV}
+
+#apt-get install parted
+partprobe ${CFDEV}
+
+mkfs.ext2    ${CFDEV}2
+mkfs.ext3 -j ${CFDEV}3
+
+tune2fs -c 0 ${CFDEV}2
+
+mv /opt /opt2
+mkdir /opt
+
+mv /data /data2
+mkdir /data
+
+echo "${CFDEV}2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  /etc/fstab
+echo "${CFDEV}3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  /etc/fstab
+
+mount -a
+
+mv /opt2/* /opt
+rmdir /opt2
+
+mv /data2/* /data
+rmdir /data2
