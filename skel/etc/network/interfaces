@@ -1,0 +1,21 @@
+auto  lo
+iface lo inet loopback
+
+# Towards internet
+auto  eth0
+iface eth0 inet dhcp
+
+# Config/Maintenance
+auto  eth1
+iface eth1 inet static
+        address 10.11.12.13
+        netmask 255.255.255.0
+      # gateway
+      # dns-nameservers
+
+# Towards BMS
+auto  eth2
+iface eth2 inet static
+        address 10.99.99.99
+        netmask 255.255.255.0
+

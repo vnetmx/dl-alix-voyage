@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# This is the interface that holds the default route
+DEFAULT_DEV=`ip route | grep ^default | grep dev | sed -e 's/^.* dev *//' -e 's/ .*$//'`
+
+# Did we just bring up the interface that holds the default route?
+if [ "X${IFACE}" = "X${DEFAULT_DEV}" ]; then
+    # Well then try to sync time
+    /etc/sync_clock
+fi

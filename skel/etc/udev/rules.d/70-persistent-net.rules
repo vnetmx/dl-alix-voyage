@@ -1,0 +1,16 @@
+# By default, /lib/udev/write_net_rules generates this file and
+# configures permanent names 'eth*' by MAC address. That is no good 
+# for us as we want to be able to move the CF disk freely from board
+# to board.
+#
+# Just deleting this file is not working either, bc it would get 
+# re-generated on boot.
+# 
+# Hence, we fix the interface names by their PCI slot on ALIX boards.
+# 
+#       Nils Toedtmann <nils.toedtmann@demandlogic.co.uk> July 2013
+
+ACTION=="add", SUBSYSTEMS=="pci", KERNELS=="0000:00:09.0", NAME="eth0"
+ACTION=="add", SUBSYSTEMS=="pci", KERNELS=="0000:00:0a.0", NAME="eth1"
+ACTION=="add", SUBSYSTEMS=="pci", KERNELS=="0000:00:0b.0", NAME="eth2"
+

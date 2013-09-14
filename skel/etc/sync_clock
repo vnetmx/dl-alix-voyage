@@ -1,0 +1,213 @@
+#!/bin/bash
+
+#############################################################################
+#
+#  (c) Nils Toedtmann 2013 <nils@toedtmann.net>
+#
+#  This init-script/cron-job helps to deal with a hardware clock that does 
+#  not reliably keep time across reboots (e.g. RTC battery missing/empty, or 
+#  there is no hwclock, or it is inaccessible).
+#
+#  Note that this script depends on lockfile(1) which comes with the procmail
+#  package, so install that.
+#
+#  Call this script every 5 or 10 minutes as cron job. E.g. have a one-liner
+#  /etc/cron.d/sync_clock:
+#
+#      */10 *  * * *   root    /etc/sync_clock
+#
+#
+#  You might also want to call it from a post-up hook on your uplink network
+#  interface. E.g. in Debian/Ubuntu's /etc/network/interfaces:
+#
+#      iface eth0 inet dhcp
+#          post-up /etc/sync_clock 
+#
+#
+#  IF YOU MAKE SURE THAT ${CLOCK_SYNCED_FILE} IS DELETED EARLY AT BOOT TIME
+#  (e.g. by calling this very script with option 'boot' or 'start'),
+#  then all services that require a correct clock can just wait for
+#  ${CLOCK_SYNCED_FILE} to appear before resuming normal operation.
+#  Init scripts could e.g. use this function snippet:
+#
+wait_for_clock_sync() {
+    CLOCK_SYNCED_FILE="/var/run/clock_synced" 
+    SLEEP_WHILE_NOT_SYNCED="10"
+    while ! [ -f ${CLOCK_SYNCED_FILE} ] ; do
+        echo "WARNING: Clock not yet synchronized (${CLOCK_SYNCED_FILE} missing). Pausing." 1>&2
+        sleep ${SLEEP_WHILE_NOT_SYNCED}
+    done
+    echo "INFO: Clock synchronized (${CLOCK_SYNCED_FILE} found), proceeding."
+}
+# 
+#############################################################################
+
+
+#############################################################################
+#  
+#  Remarks for usage on ALIX boards:  
+#  
+#   * In order to make hwclock(8) work on ALIX, make sure the 'rtc' kernel
+#     module gets loaded (append 'rtc' to /etc/modules)
+#
+#   * This script assumes that ${CLOCK_SYNCED_FILE} is either missing or
+#     gets deleted at boot time. Putting it into /var/run works on Voyage
+#     Linux because that is empty after boot. If you put it elsewhere,
+#     make sure it disappears on reboot
+#     
+#   * ${TIMESTAMP_FILE} must live on a reboot-save read-write partition!
+#     
+#   * On ALIX, the system clock (and probably the hardware clock, too) is
+#     significatly drifting. Maybe one should try other clocksources.
+#     Unfortunately the kernel declares clocksource 'tsc' unstable and 
+#     switches back to 'pit'. Maybe we should try 'jiffies'?
+#
+#  
+#############################################################################
+
+
+#############################################################################
+#  CONFIGURE!
+
+# Which time server to use
+NTP_SOURCE="uk.pool.ntp.org"
+
+# Shall we set the hwclock after synchronizing the system clock?
+SYNC_HWCLOCK="1"
+
+# If setting hwclock, do we need hwclock(8) options?
+# On ALIX you might need HWCLOCK_OPTIONS="--directisa -u --noadjfile"
+HWCLOCK_OPTIONS=""
+
+# More logging output
+DEBUG=1
+
+# Additional log file 
+LOG_FILE="/data/logs/sync_clock.log"
+
+# The presence of this file indicates that the system clock is now in sync 
+# Should get removed early after reboot by 'sync_clock boot'
+# Must live on a r/w partition. tmpfs OK
+CLOCK_SYNCED_FILE="/var/run/clock_synced" 
+
+# The TIMESTAMP_FILE helps to estimate the correct date at boot time
+# Should live on a reboot-safe r/w partition!
+TIMESTAMP_FILE="/data/timestamp"
+
+# End of CONFIGURE
+#############################################################################
+
+
+#############################################################################
+# This part is stolen from nilssons_bash_helpers. Included to make this 
+# script selfcontained.
+PROGNAME=`basename $0`
+PID_FILE="/var/run/${PROGNAME}.pid"
+LOG_TAG="${PROGNAME}"
+LOGGER_OPTIONS=""
+LOCKFILE_BIN="/usr/bin/lockfile"
+LOGGER_BIN="/usr/bin/logger"
+TIMEFORMAT="+%Y/%m/%d-%H:%M:%S"
+
+if ! [ -x ${LOGGER_BIN} ] ; then
+    echo "ERROR: ${LOGGER_BIN} not found! Please install 'logger'. Exiting." 1>&2
+    exit 1
+fi
+
+_log()    { 
+    ${LOGGER_BIN}  ${LOGGER_OPTIONS}  --tag "${LOG_TAG}" "${@}" 
+    if [ -n ${LOG_FILE} ] ; then
+	echo "`date ${TIMEFORMAT}`: ${@}" >> ${LOG_FILE}
+    fi
+}
+
+_error()  { 
+    LOGGER_OPTIONS="--stderr ${LOGGER_OPTIONS}"
+    _log "${@}"
+    exit 1 
+}
+
+if ! [ -x ${LOCKFILE_BIN} ] ; then
+    _error "ERROR: ${LOCKFILE_BIN} not found! Please install the 'procmail' package. Exiting."
+fi
+
+_unlock() {
+    rm -f ${PID_FILE}
+}
+
+_lock() {
+    lockfile -r 0 ${PID_FILE} || _error "ERROR: could not aquire lock ${PID_FILE}. Maybe another instance of this script is already running? Exiting."
+    trap _unlock EXIT
+    echo "$$" > ${PID_FILE}
+}
+# End of nilssons_bash_helpers
+#############################################################################
+
+
+_lock
+
+HWCLOCK_BIN="/sbin/hwclock"
+NTPDATE_BIN="/usr/sbin/ntpdate"
+if ! [ -x ${NTPDATE_BIN} ] ; then
+    _error "ERROR: ${NTPDATE_BIN} not found! Please install 'ntpdate'. Exiting."
+fi
+
+
+COMMAND="${1}"
+case $COMMAND in
+    boot|start)
+        _log "WARNING: Called in ${COMMAND} mode. Time is not yet synchronized and likely to be wrong. Taking precautions."
+        if [ -f ${CLOCK_SYNCED_FILE} ] ; then
+            _log "INFO: clock sync indicator file ${CLOCK_SYNCED_FILE} found. Removing it."
+            rm -f ${CLOCK_SYNCED_FILE}
+        fi
+        exit 0
+        ;;
+esac
+
+
+[ "X${COMMAND}" = "X" ]  ||  _log "WARNING: Command '${COMMAND}' unknown. I only know [boot|start], or none for normal operation."
+
+
+[ "${DEBUG}" = "1" ] && _log "DEBUG: Synchronizing system clock with ${NTP_SOURCE}"
+ntp_output=`/usr/sbin/ntpdate -s ${NTP_SOURCE} 2>&1`
+ntp_exitcode=$?
+
+if ! [ "X${ntp_output}" = "X" ] ; then
+    _log "INFO: ntpdate says: '${ntp_output}'"
+fi
+
+if [ ${ntp_exitcode} -eq 0 ] ; then 
+    touch ${TIMESTAMP_FILE} 2> /dev/null || _log "WARNING: Could not touch timestamp file ${TIMESTAMP_FILE}"
+    if ! [ -f ${CLOCK_SYNCED_FILE} ] ; then
+        _log "INFO: Clock is in sync now, creating ${CLOCK_SYNCED_FILE}"
+        touch ${CLOCK_SYNCED_FILE}
+    fi
+    if [ "${SYNC_HWCLOCK}" = "1" ] ; then
+        if [ -x ${HWCLOCK_BIN} ] ; then 
+            [ "${DEBUG}" = "1" ] && _log "DEBUG: Synchronizing system clock to hardware clock"
+            ${HWCLOCK_BIN} ${HWCLOCK_OPTIONS} --systohc
+        else
+            _log "WARNING: hwclock binary ${HWCLOCK_BIN} not found, cannot synchronize hardware clock"
+        fi
+    fi
+    [ "${DEBUG}" = "1" ] && _log "DEBUG: Done"
+else
+    _log "WARNING: Synchronizing system clock with ${NTP_SOURCE} FAILED. Assuming we don't have network yet."
+    if [ "`find ${TIMESTAMP_FILE} -mtime -0`" = "${TIMESTAMP_FILE}" ] ; then
+        _log "INFO: Found timestamp file ${TIMESTAMP_FILE} in the future (`stat -c %y ${TIMESTAMP_FILE}`)."
+        sudo date --set="`date --reference=${TIMESTAMP_FILE}`" > /dev/null
+        _log "INFO: Set datetime to mtime of ${TIMESTAMP_FILE}"
+    fi
+fi
+
+
+# TODO: 
+#
+#   * '/etc/sync_clock boot' does not get called (or doesn't work) on ALIX
+#
+#   * Add parameter 'wait'
+#
+#   * Try clocksource 'tsc'? See
+#         http://www.pcengines.info/forums/?page=post&id=27136143-ABFC-4447-87DE-2B942342FE71
+#

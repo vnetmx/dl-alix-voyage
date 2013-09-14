@@ -1,0 +1,4 @@
+MAILTO=root
+
+*/10 *  * * *   root    /etc/sync_clock
+
