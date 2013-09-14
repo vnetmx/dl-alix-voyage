@@ -1,0 +1,15 @@
+
+HOST=172.29.1.74
+
+HOST_STRING=root@${HOST}
+fab --host ${HOST_STRING} allow_sudo_group
+fab --host ${HOST_STRING} add_posix_group:adm
+fab --host ${HOST_STRING} add_posix_user:admin,primary_group=adm,sudo=True
+fab --host ${HOST_STRING} ssh_add_public_key:nils,user=admin
+fab --host ${HOST_STRING} ssh_add_public_key:short,user=admin
+fab --host ${HOST_STRING} ssh_add_public_key:dan,user=admin
+                
+HOST_STRING=admin@${HOST}
+fab --host ${HOST_STRING} push_skeleton:local_path=../files/home-skel/,remote_path='.' 
+fab --host ${HOST_STRING} harden_sshd
+fab --host ${HOST_STRING} lock_user:root
