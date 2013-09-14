@@ -1,0 +1,9 @@
+
+########################################################
+# TODOs:
+#  * Create partitions /opt/ and /data/
+#  * Test whether CF is mounted
+#  * Configure munin, create /var/lib/munin
+#  * Create admin account
+#  * Harden SSH
+

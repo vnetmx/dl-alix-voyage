@@ -1,0 +1,77 @@
+#######################################################################
+# Copyright 2013 
+#    Demand Logic limited <info@demandlogic.co.uk>
+#    Nils Toedtmann <nils.toedtmann@demandlogic.co.uk>
+#
+# This file is part of DemandLogic's ALIX deployment scripts :
+#
+#    <https://github.com/DemandLogic/dl-alix-voyage>
+#
+# DemandLogic's ALIX deployment scripts is free software: you can 
+# redistribute it and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
+#
+# DemandLogic's ALIX deployment scripts is distributed in the hope that
+# it will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with DemandLogic's ALIX deployment scripts. If not, see 
+# <http://www.gnu.org/licenses/>.
+#######################################################################
+
+
+#######################################################################
+# This is the chroot part of our script to deploy Voyage Linux 
+# onto a compact flash card (CF) for a PC Engine ALIX board
+#######################################################################
+
+
+# Set simple locale
+export LANG="C"
+unset LANGUAGE LC_ALL LC_PAPER LC_ADDRESS LC_MONETARY LC_NUMERIC LC_TELEPHONE LC_IDENTIFICATION LC_MEASUREMENT LC_TIME LC_NAME
+
+DEL_PACKAGES="dnsmasq rpcbind"
+PRE_PACKAGES="dialog debconf"
+PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump"
+# open{ssh,ssl,vpn}-blacklist?
+
+
+apt-get -y remove --purge ${DEL_PACKAGES}
+apt-get -y autoremove
+apt-get update
+
+# Prepare installation of other packages
+apt-get -y install ${PRE_PACKAGES}
+
+HOSTNAME=`cat /etc/hostname`
+echo "postfix postfix/mailname          string  ${HOSTNAME}"      | debconf-set-selections
+echo "postfix postfix/main_mailer_type  select  No configuration" | debconf-set-selections
+
+apt-get -y upgrade
+apt-get -y install ${PACKAGES}
+apt-get clean 
+
+
+# Set random root password
+ROOTPW=`dd if=/dev/urandom bs=1 count=15 2>/dev/null | base64 -w 0 | tr -d '=' | tr '/+' '.-'` 
+echo "root:${ROOTPW}" | chpasswd
+echo "root password set to '${ROOTPW}'"
+
+
+# This is useless, we have our better sync_time
+chmod -x /etc/network/if-up.d/ntpdate
+
+
+# Clean up
+
+# Stop any services that migh be running after their installation
+for s in supervisor munin-node inetutils-syslogd postfix openvpn ; do
+    service $s stop
+done
+
+# Exit the CHROOT
+exit 0
+

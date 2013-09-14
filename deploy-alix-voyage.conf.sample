@@ -1,0 +1,20 @@
+
+# CFDEV="/dev/doesNotExist"
+# MNTPNT="/mnt/cf"
+# ROOTFS_SIZE="+1000M"
+
+# VER="0.9.1"
+# DIST_BASE=/tmp
+# DIST_DIR=${DIST_BASE}/voyage-${VER}
+
+# HOSTNAME="voyage.example.com"
+# ROOTALIAS="rootmail@example.com"
+# RELAYHOST=
+
+# SSH_KEYS="nils.toedtmann.dsa.pub"
+# SSH_KEY_REPO="https://raw.github.com/nilstoedtmann/sshkeys/master/"
+
+# CA_BASE=/path/to/your/certificate/dir
+# VPN_CLIENT_CERT=${HOSTNAME}.crt
+# VPN_CLIENT_KEY=${HOSTNAME}.key
+# VPN_REMOTE='vpn.example.com 1194'

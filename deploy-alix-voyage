@@ -1,0 +1,185 @@
+#######################################################################
+# Copyright 2013 
+#    Demand Logic limited <info@demandlogic.co.uk>
+#    Nils Toedtmann <nils.toedtmann@demandlogic.co.uk>
+#
+# This file is part of DemandLogic's ALIX deployment scripts :
+#
+#    <https://github.com/DemandLogic/dl-alix-voyage>
+#
+# DemandLogic's ALIX deployment scripts is free software: you can 
+# redistribute it and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
+#
+# DemandLogic's ALIX deployment scripts is distributed in the hope that
+# it will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with DemandLogic's ALIX deployment scripts. If not, see 
+# <http://www.gnu.org/licenses/>.
+#######################################################################
+
+
+#######################################################################
+# A little script to deploy Voyage Linux
+# onto a compact flash card (CF) for a PC Engine ALIX board
+#######################################################################
+
+
+CFDEV="/dev/doesNotExist"
+MNTPNT="/mnt/cf"
+ROOTFS_SIZE="+800M"
+
+VER="0.9.1"
+DIST_BASE=${PWD}
+DIST_DIR=${DIST_BASE}/voyage-${VER}
+
+BASE="$(cd "$(dirname "$0")" ; pwd)"
+SKEL="${BASE}/skel"
+CHROOT_SCRIPT="${BASE}/deploy-alix-voyage-chroot"
+
+HOSTNAME="voyage.example.com"
+ROOTALIAS="rootmail@example.com"
+RELAYHOST=
+
+SSH_KEYS="nils.toedtmann.dsa.pub"
+SSH_KEY_REPO="https://raw.github.com/nilstoedtmann/sshkeys/master/"
+
+CA_BASE=/path/to/your/certificate/dir
+VPN_CLIENT_CERT=${HOSTNAME}.crt
+VPN_CLIENT_KEY=${HOSTNAME}.key
+VPN_REMOTE='vpn.example.com 1194'
+
+
+CONF=deploy-alix-voyage.conf
+if [ -r $CONF ] ; then
+    . $CONF
+fi
+
+
+# Set simple locale
+export LANG="C"
+unset LANGUAGE LC_ALL LC_PAPER LC_ADDRESS LC_MONETARY LC_NUMERIC LC_TELEPHONE LC_IDENTIFICATION LC_MEASUREMENT LC_TIME LC_NAME
+perl -e exit  # test locale
+
+
+####################
+# Prepare CF
+# Clear partition table
+dd if=/dev/zero bs=1 seek=446 count=64 of=${CFDEV}
+
+# Create the root partition
+echo -e "n\np\n\n\n${ROOTFS_SIZE}\np\nw\n" | fdisk ${CFDEV}
+#echo -e 'n\np\n\n\n+1G\nn\np\n\n\n+1G\nn\np\n\n\n\np\nw\n' | fdisk ${CFDEV}
+
+# Force kernel to re-read the partition table. 
+partprobe ${CFDEV}
+
+# Check whether it worked. If not, remove the CF and re-insert it.
+fdisk -l ${CFDEV} 
+
+# format the partition
+mkfs.ext2    ${CFDEV}1
+
+# Make sure it does not require regular fs checks:
+tune2fs -c 0 ${CFDEV}1
+# DONE preparing CF
+
+# Prepare mountpoint
+mkdir -p ${MNTPNT}
+
+
+#########################
+# Fetch and install Voyage
+mkdir -p $DIST_BASE
+
+if ! [ -d ${DIST_DIR} ] ; then
+    (
+        cd $DIST_BASE
+        wget -c http://mirror.voyage.hk/download/voyage/voyage-${VER}.tar.bz2
+        tar xjf voyage-${VER}.tar.bz2
+    )
+fi
+
+
+# Install voyage onto ${CFDEV}
+( 
+    cd ${DIST_DIR}
+    ./usr/local/sbin/voyage.update -i -P ALIX -t ${CFDEV} -p 1 -b 1 -g -s 38400 -c serial -m ${MNTPNT} -d ${PWD} -U
+)
+
+
+# Set DNS resolver
+cat /etc/resolv.conf > ${MNTPNT}/run/resolvconf/resolv.conf
+
+
+# Set hostname
+echo ${HOSTNAME} > ${MNTPNT}/etc/hostname
+echo ${HOSTNAME} > ${MNTPNT}/etc/mailname
+
+
+# Prepare /etc/hosts
+cat << EOF > ${MNTPNT}/etc/hosts
+127.0.0.1 localhost
+127.0.1.1 ${HOSTNAME}
+EOF
+
+
+chown -R 0:0 ${SKEL}/
+rsync -a ${SKEL}/ ${MNTPNT}/
+
+
+#enable rtc
+echo "rtc" >> ${MNTPNT}/etc/modules
+
+
+# Set root alias
+echo "root: ${ROOTALIAS}" >> ${MNTPNT}/etc/aliases
+
+
+mkdir -m 700 ${MNTPNT}/root/.ssh
+for key in ${SSH_KEYS} ; do 
+    wget -qO- "${SSH_KEY_REPO}/${key}" >> ${MNTPNT}/root/.ssh/authorized_keys
+done
+    
+
+# Configure OpenVPN
+(
+    cd ${MNTPNT}/etc/openvpn/
+
+    cp -a ${CA_BASE}/${VPN_CLIENT_CERT} .
+    cp -a ${CA_BASE}/${VPN_CLIENT_KEY}  .
+
+    ln -s ${VPN_CLIENT_CERT} client.crt
+    ln -s ${VPN_CLIENT_KEY}  client.key
+)
+sed -e "s/^remote.*$/remote $VPN_REMOTE/" -i ${MNTPNT}/etc/openvpn/client.conf
+
+
+# TODO: Configure SmartHost for Postfix
+# (sed 'relayhost' option)
+
+
+#mount ${CFDEV}1 ${MNTPNT}
+BINDMOUNTS="dev/pts proc"
+for fs in ${BINDMOUNTS} ; do
+    mount -o bind {,${MNTPNT}}/${fs}
+done
+BINDMOUNTS="${BINDMOUNTS} dev"
+
+cp -a ${CHROOT_SCRIPT} ${MNTPNT}/tmp/deploy
+chroot ${MNTPNT} /tmp/deploy
+
+# Close bind-mounts
+sleep 5
+for fs in ${BINDMOUNTS} ; do
+    umount ${MNTPNT}/${fs}
+    sleep 2
+done
+umount ${MNTPNT}
+
+
+echo "DONE!"
