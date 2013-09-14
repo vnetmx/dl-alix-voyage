@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #######################################################################
 # Copyright 2013 
 #    Demand Logic limited <info@demandlogic.co.uk>
@@ -54,7 +56,7 @@ VPN_CLIENT_KEY=${HOSTNAME}.key
 VPN_REMOTE='vpn.example.com 1194'
 
 
-CONF=deploy-alix-voyage.conf
+CONF=${BASE}/deploy-alix-voyage.conf
 if [ -r $CONF ] ; then
     . $CONF
 fi
