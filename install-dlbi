@@ -1,0 +1,14 @@
+# first, create a DLBI in our platform and write down UID and LABEL
+
+# in SVN repo 'dlstandalone', in infrastructure/qad/:
+
+HOST=172.29.1.74
+DLBI_UID="e9aed1b6-1d7d-11e3-9a63-525400b7ede1"
+DLBI_LABEL="probe0006"
+
+fab --host ${HOST} setup_dlbi
+fab --host ${HOST} setup_dlbi
+fab --host ${HOST} configure_dlbi:${DLBI_UID},${DLBI_LABEL},live
+
+# then watch /opt/demand_logic/logs/dlbi_dlbi.log and /opt/demand_logic/data/dloutputs/data/*/status_display.txt
+

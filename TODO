@@ -1,14 +1,15 @@
 
-########################################################
-# TODOs:
-#  * Create partitions /opt/ and /data/
-#  * Test whether CF is mounted
-#  * Allow if's to become active later
-#  * Add verbosity
-#  * Make the VPN cert generally available, in particular for 'ssl-cert'
-#  * Fix apt-get error "WARNING: The following packages cannot be authenticated!"
-#  * Configure munin
-#  * create /var/lib/munin
-#  * Create admin account
-#  * Harden SSH
+TODOs:
+ * Create partitions /opt/ and /data/
+ * Test whether CF is mounted
+ * Allow if's to become active later
+ * Add verbosity
+ * Make the VPN cert generally available, in particular for 'ssl-cert'
+ * Fix apt-get error "WARNING: The following packages cannot be authenticated!"
+ * Configure munin
+ * create /var/lib/munin
+ * Create admin account
+ * Harden SSH
 
+DLBI:
+ * split off data dirs! But: .pyc files?
