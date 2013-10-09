@@ -34,6 +34,7 @@
 CFDEV="/dev/doesNotExist"
 MNTPNT="/mnt/cf"
 ROOTFS_SIZE="+800M"
+OPT_FS_SIZE="+500M"
 
 VER="0.9.1"
 DIST_BASE=${PWD}
@@ -70,12 +71,14 @@ perl -e exit  # test locale
 
 ####################
 # Prepare CF
+sudo apt-get install parted
+
 # Clear partition table
 dd if=/dev/zero bs=1 seek=446 count=64 of=${CFDEV}
 
-# Create the root partition
-echo -e "n\np\n\n\n${ROOTFS_SIZE}\np\nw\n" | fdisk ${CFDEV}
-#echo -e 'n\np\n\n\n+1G\nn\np\n\n\n+1G\nn\np\n\n\n\np\nw\n' | fdisk ${CFDEV}
+# Create the partitions
+#echo -e "n\np\n\n\n${ROOTFS_SIZE}\np\nw\n" | fdisk ${CFDEV}
+echo -e "n\np\n\n\n${ROOTFS_SIZE}\nn\np\n\n\n${OPT_FS_SIZE}\nn\np\n\n\n\np\nw\n" | fdisk ${CFDEV}
 
 # Force kernel to re-read the partition table. 
 partprobe ${CFDEV}
@@ -83,11 +86,15 @@ partprobe ${CFDEV}
 # Check whether it worked. If not, remove the CF and re-insert it.
 fdisk -l ${CFDEV} 
 
-# format the partition
+# format the partitions
 mkfs.ext2    ${CFDEV}1
+mkfs.ext2    ${CFDEV}2
+mkfs.ext3 -j ${CFDEV}3
 
 # Make sure it does not require regular fs checks:
 tune2fs -c 0 ${CFDEV}1
+tune2fs -c 0 ${CFDEV}2
+
 # DONE preparing CF
 
 # Prepare mountpoint
@@ -132,6 +139,13 @@ EOF
 
 chown -R 0:0 ${SKEL}/
 rsync -a ${SKEL}/ ${MNTPNT}/
+
+
+# Add partisions to fstab
+mkdir -p ${MNTPNT}/{opt,data}
+echo "/dev/hda2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
+echo "/dev/hda3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
+
 
 
 #enable rtc
