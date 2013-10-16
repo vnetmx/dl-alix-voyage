@@ -1,0 +1,60 @@
+#!/bin/sh
+# Configures ALIX LEDs.
+#
+### BEGIN INIT INFO
+# Provides:          leds
+# Required-Start:    $all
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Configures ALIX LEDs
+# Description:       Configures ALIX LEDs
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+BIN="/etc/led_control"
+CONF="/etc/leds.conf"
+
+LED1="disk"
+LED2="net tun0"
+LED3="net eth2"
+
+test -f $CONF && . $CONF
+test -x $BIN || exit 0
+
+
+case "$1" in
+    start|restart)
+        $BIN 1 $LED1
+        $BIN 2 $LED2
+        $BIN 3 $LED3
+	;;
+
+    stop)
+        SHUTDOWN_MODE=1
+        STAGE=0
+        for led in 1 2 3 ; do
+            status=`cat /sys/class/leds/alix\:$led/trigger | sed -e 's/^.*\[\([^]]*\)\].*$/\1/'`
+            [ "X$status" = "Xnone" ] || [ "X$status" = "Xtimer" ] || SHUTDOWN_MODE=0
+            [ "X$status" = "Xnone" ] && STAGE=$led
+        done
+        
+        if [ $SHUTDOWN_MODE = 1 ] ; then
+            if [ $STAGE = 2 ] ; then
+                $BIN 3 timer 25 2000
+            else
+                $BIN $((STAGE+1)) off
+            fi
+        else
+            for led in 1 2 3 ; do
+                $BIN $led timer 450 50
+            done
+        fi
+        ;;
+        
+    *)	
+        echo "SYNTAX ERROR. Usage: `basename $0` [start|stop]"
+        exit 2
+        ;;
+esac
+exit 0
