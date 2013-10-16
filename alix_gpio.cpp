@@ -31,7 +31,20 @@
  *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *      MA 02110-1301, USA.
  */
- 
+
+
+/*
+ *      Remarks by Nils Toedtmann, DemandLogic ltd:
+ *      
+ *       * Source http://choerbaert.org/wiki/voyage_on_alix
+ *      
+ *       * To cross-compile from x64, install g++ and g++-multilib, then
+ *         'g++ -m32 -o alix_gpio alix_gpio.cpp'
+ *      
+ *       * alix_gpio can trigger any binary in $PATH, including shell 
+ *         scripts. See variable PRESS_ACTION 
+ */
+
 #include <cstdio>
 #include <ctime>
 #include <sys/io.h>
@@ -45,7 +58,7 @@ const unsigned short int GPIO_LEDTWO_BIT_OFF  = 9;
 const time_t   SLEEP_SECONDS     = 0;
 const long int SLEEP_NANOSECONDS = 500 * 1000 * 1000; // 0.5 seconds
 //const char* PRESS_ACTION[] = { "ls", "-l", "-h", NULL }; // for debugging :)
-const char* PRESS_ACTION[] = { "poweroff", NULL }; // last argument must be NULL!
+const char* PRESS_ACTION[] = { "/etc/alix_gpio_action", NULL }; // last argument must be NULL!
  
 int main(int argc, char* argv[]) {
     // fork into background
