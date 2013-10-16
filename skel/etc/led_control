@@ -1,8 +1,10 @@
 #!/bin/bash
 
+LOG_TAG="[led_control]"
+
 usage() {
     echo "usage:"
-    echo "    `basename $0`  LED_NUMBER  {on|off|timer ON_DELAY OFF_DELAY|disk|net DEVICE}"
+    echo "    `basename $0`  LED_NUMBER  {on|off|timer ON_DELAY OFF_DELAY|heartbeat|disk|net DEVICE}"
 }
 
 test_arg() {
@@ -18,10 +20,11 @@ test_arg $LED
 shift
 LED_DIR="/sys/class/leds/alix:${LED}"
 
-
+FULL_COMMAND="$@"
 COMMAND=$1
 test_arg $COMMAND
 shift
+
 
 case $COMMAND in
     on)
@@ -44,6 +47,10 @@ case $COMMAND in
         echo "$OFF_DELAY" > ${LED_DIR}/delay_off
         ;;
 
+    heartbeat)
+        echo "heartbeat"  > ${LED_DIR}/trigger
+        ;;
+
     disk)
 	echo "ide-disk"   > ${LED_DIR}/trigger
         ;;
@@ -60,3 +67,5 @@ case $COMMAND in
         usage
         ;;
 esac
+
+echo "Set mode of LED${LED} to '${FULL_COMMAND}'" | logger -t "${LOG_TAG}"
