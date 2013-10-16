@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          alix_gpio
+# Required-Start:    $all
+# Required-Stop:     
+# Default-Start:     S
+# Default-Stop:      0 1 6
+# Short-Description: Starts alix_gpio to watch the ALIX reset button
+# Description:       Starts alix_gpio to watch the ALIX reset button 
+#                    and execute /etc/alix_gpio_action when pressed
+### END INIT INFO
+
+# TODO: 
+# * Have a /var/run/alix_gpio.pid file
+# * Kill alix_gpio on "stop"
+# * Add "status" command
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+BIN="/usr/local/sbin/alix_gpio"
+
+test -x $BIN || exit 0
+
+case "$1" in
+    start|restart)
+        $BIN
+        ;;
+
+    stop)
+        :
+        ;;
+
+    enable)
+        /usr/sbin/update-rc.d `basename $0` defaults
+        ;;
+
+    *)	
+        echo "SYNTAX ERROR. Usage: `basename $0` start"
+        exit 2
+        ;;
+esac
+
+exit 0
