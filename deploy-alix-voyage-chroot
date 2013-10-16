@@ -68,6 +68,10 @@ echo "root password set to '${ROOTPW}'"
 /usr/sbin/update-rc.d reset_button defaults
 
 
+# We are taking care of the LEDs ourselves:
+sed   -e 's/^VOYAGE_LEDS=.*$/VOYAGE_LEDS="NO"/'  -i /etc/default/voyage-util
+
+
 #Configure netplug to only watch eth0
 echo "eth0" > /etc/netplug/netplugd.conf
 
