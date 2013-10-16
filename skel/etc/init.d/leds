@@ -49,28 +49,6 @@ case "$1" in
         /usr/sbin/update-rc.d `basename $0` defaults
         ;;
 
-    shutdown)
-        SHUTDOWN_MODE=1
-        STAGE=0
-        for led in 1 2 3 ; do
-            status=`cat /sys/class/leds/alix\:$led/trigger | sed -e 's/^.*\[\([^]]*\)\].*$/\1/'`
-            [ "X$status" = "Xnone" ] || [ "X$status" = "Xtimer" ] || SHUTDOWN_MODE=0
-            [ "X$status" = "Xnone" ] && STAGE=$led
-        done
-        
-        if [ $SHUTDOWN_MODE = 1 ] ; then
-            if [ $STAGE = 2 ] ; then
-                $BIN 3 timer 25 2000
-            else
-                $BIN $((STAGE+1)) off
-            fi
-        else
-            for led in 1 2 3 ; do
-                $BIN $led timer 450 50
-            done
-        fi
-        ;;
-        
     *)	
         echo "SYNTAX ERROR. Usage: `basename $0` [start|stop]"
         exit 2
