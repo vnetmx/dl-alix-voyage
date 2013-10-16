@@ -1,0 +1,62 @@
+#!/bin/bash
+
+usage() {
+    echo "usage:"
+    echo "    `basename $0`  LED_NUMBER  {on|off|timer ON_DELAY OFF_DELAY|disk|net DEVICE}"
+}
+
+test_arg() {
+    if [ "X$1" = "X" ] ; then
+        echo "ERROR: Missing argument!" 2>&1
+        usage
+        exit 1
+    fi
+}
+
+LED=$1
+test_arg $LED
+shift
+LED_DIR="/sys/class/leds/alix:${LED}"
+
+
+COMMAND=$1
+test_arg $COMMAND
+shift
+
+case $COMMAND in
+    on)
+        echo "none" > ${LED_DIR}/trigger
+        echo "1"    > ${LED_DIR}/brightness
+        ;;
+
+    off)
+        echo "none" > ${LED_DIR}/trigger
+        echo "0"    > ${LED_DIR}/brightness
+        ;;
+
+    timer)
+        ON_DELAY=$1
+        OFF_DELAY=$2
+        test_arg $ON_DELAY
+        test_arg $OFF_DELAY
+        echo "timer"      > ${LED_DIR}/trigger
+        echo "$ON_DELAY"  > ${LED_DIR}/delay_on
+        echo "$OFF_DELAY" > ${LED_DIR}/delay_off
+        ;;
+
+    disk)
+	echo "ide-disk"   > ${LED_DIR}/trigger
+        ;;
+
+    net)
+        DEVICE=$1
+        test_arg $DEVICE
+        echo "netdev"     > ${LED_DIR}/trigger
+        echo "$DEVICE"    > ${LED_DIR}/device_name
+        echo "tx rx"      > ${LED_DIR}/mode
+        ;;
+
+    *) 
+        usage
+        ;;
+esac
