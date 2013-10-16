@@ -71,7 +71,7 @@ perl -e exit  # test locale
 
 ####################
 # Prepare CF
-sudo apt-get install parted
+sudo apt-get install parted patch
 
 # Clear partition table
 dd if=/dev/zero bs=1 seek=446 count=64 of=${CFDEV}
@@ -139,6 +139,12 @@ EOF
 
 chown -R 0:0 ${SKEL}/
 rsync -a ${SKEL}/ ${MNTPNT}/
+
+# Apply patches
+for file in /etc/init.d/halt ; do
+    patch ${MNTPNT}${file} < ${MNTPNT}${file}.patch
+    rm ${MNTPNT}${file}.patch
+done
 
 
 # Add partisions to fstab
