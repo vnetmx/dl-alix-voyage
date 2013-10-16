@@ -68,12 +68,16 @@ echo "root password set to '${ROOTPW}'"
 /usr/sbin/update-rc.d reset_button defaults
 
 
+#Configure netplug to only watch eth0
+echo "eth0" > /etc/netplug/netplugd.conf
+
+
 # This is useless, we have our better sync_time
 chmod -x /etc/network/if-up.d/ntpdate
 
 
 # Clean up
-
+kill `cat /run/dhclient.eth0.pid`
 # Stop any services that migh be running after their installation
 for s in supervisor munin-node inetutils-syslogd postfix openvpn netplug ; do
     service $s stop
