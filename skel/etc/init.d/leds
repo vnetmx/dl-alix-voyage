@@ -3,9 +3,9 @@
 #
 ### BEGIN INIT INFO
 # Provides:          leds
-# Required-Start:    $all
-# Required-Stop:     
-# Default-Start:     2 3 4 5
+# Required-Start:    kmod
+# Required-Stop:     $all
+# Default-Start:     S
 # Default-Stop:      0 1 6
 # Short-Description: Configures ALIX LEDs
 # Description:       Configures ALIX LEDs
@@ -15,13 +15,13 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 BIN="/etc/led_control"
 CONF="/etc/leds.conf"
 
-LED1="disk"
-LED2="net tun0"
-LED3="net eth2"
+LED1="heartbeat"
+LED2="disk"
+LED3="net eth0"
+SHUTDOWN_LED="3"
 
 test -f $CONF && . $CONF
 test -x $BIN || exit 0
-
 
 case "$1" in
     start|restart)
@@ -31,6 +31,25 @@ case "$1" in
 	;;
 
     stop)
+        $BIN $SHUTDOWN_LED timer 250 250
+        ;;
+
+    off)
+        echo -n "Switching off LEDs ..."
+        for led in 1 2 3 ; do
+            $BIN $led off
+        done
+        echo " done."
+        ;;
+
+    enable)
+        if [ -f /etc/default/voyage-util ] ; then
+            sed   -e 's/^VOYAGE_LEDS=.*$/VOYAGE_LEDS="NO"/'  -i /etc/default/voyage-util
+        fi
+        /usr/sbin/update-rc.d `basename $0` defaults
+        ;;
+
+    shutdown)
         SHUTDOWN_MODE=1
         STAGE=0
         for led in 1 2 3 ; do
@@ -57,4 +76,5 @@ case "$1" in
         exit 2
         ;;
 esac
+
 exit 0
