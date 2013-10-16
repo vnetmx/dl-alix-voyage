@@ -2,7 +2,8 @@ auto  lo
 iface lo inet loopback
 
 # Towards internet
-auto  eth0
+# WARNING: Do not set "auto eth0" if eth0 is watched by netplugd. See /etc/netplug/netplugd.conf
+#auto  eth0
 iface eth0 inet dhcp
 
 # Config/Maintenance
