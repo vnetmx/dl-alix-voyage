@@ -52,9 +52,6 @@
  
 const unsigned short int GPIO_MODESWITCH_ADDR = 0x061b0;
 const unsigned short int GPIO_MODESWITCH_BIT  = 8;
-const unsigned short int GPIO_LEDTWO_ADDR     = 0x06180;
-const unsigned short int GPIO_LEDTWO_BIT_ON   = 25;
-const unsigned short int GPIO_LEDTWO_BIT_OFF  = 9;
 const time_t   SLEEP_SECONDS     = 0;
 const long int SLEEP_NANOSECONDS = 500 * 1000 * 1000; // 0.5 seconds
 //const char* PRESS_ACTION[] = { "ls", "-l", "-h", NULL }; // for debugging :)
@@ -87,14 +84,6 @@ int main(int argc, char* argv[]) {
  
         if (pressed) {
             ioperm(GPIO_MODESWITCH_ADDR, 4, 0); // remove mode switch port access permissions
-            if (ioperm(GPIO_LEDTWO_ADDR, 4, 1) != 1) { // request access permissions for led port
-                // switching a led on requires to set one bit and to clear another one, yay
-                val = inl(GPIO_LEDTWO_ADDR);
-                val |= 1 << GPIO_LEDTWO_BIT_ON;
-                val &= ~ (1 << GPIO_LEDTWO_BIT_OFF);
-                outl(val, GPIO_LEDTWO_ADDR);
-                ioperm(GPIO_LEDTWO_ADDR, 4, 0); // remove led port access permissions
-            }
  
             // execute press action
             if (execvp(PRESS_ACTION[0], const_cast<char* const*>(PRESS_ACTION)) == -1) {
