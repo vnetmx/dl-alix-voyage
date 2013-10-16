@@ -2,3 +2,5 @@
 
 ACTION="poweroff"
 echo "ALIX reset button pressed, executing '${ACTION}'" | logger -t '[alix_gpio]'
+exec ${ACTION}
+
