@@ -37,7 +37,7 @@ unset LANGUAGE LC_ALL LC_PAPER LC_ADDRESS LC_MONETARY LC_NUMERIC LC_TELEPHONE LC
 
 DEL_PACKAGES="dnsmasq rpcbind"
 PRE_PACKAGES="dialog debconf"
-PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump"
+PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump netplug"
 # open{ssh,ssl,vpn}-blacklist?
 
 
@@ -63,6 +63,11 @@ echo "root:${ROOTPW}" | chpasswd
 echo "root password set to '${ROOTPW}'"
 
 
+# Make sure our ALIX services get started at boot time:
+/usr/sbin/update-rc.d leds         defaults
+/usr/sbin/update-rc.d reset_button defaults
+
+
 # This is useless, we have our better sync_time
 chmod -x /etc/network/if-up.d/ntpdate
 
@@ -70,7 +75,7 @@ chmod -x /etc/network/if-up.d/ntpdate
 # Clean up
 
 # Stop any services that migh be running after their installation
-for s in supervisor munin-node inetutils-syslogd postfix openvpn ; do
+for s in supervisor munin-node inetutils-syslogd postfix openvpn netplug ; do
     service $s stop
 done
 
