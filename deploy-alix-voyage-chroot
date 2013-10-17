@@ -37,7 +37,7 @@ unset LANGUAGE LC_ALL LC_PAPER LC_ADDRESS LC_MONETARY LC_NUMERIC LC_TELEPHONE LC
 
 DEL_PACKAGES="dnsmasq rpcbind"
 PRE_PACKAGES="dialog debconf"
-PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump netplug"
+PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump netplug ufw"
 # open{ssh,ssl,vpn}-blacklist?
 
 
@@ -64,8 +64,9 @@ echo "root password set to '${ROOTPW}'"
 
 
 # Make sure our ALIX services get started at boot time:
-/usr/sbin/update-rc.d leds         defaults
-/usr/sbin/update-rc.d reset_button defaults
+for service in sync_clock leds reset_button ; do 
+    /usr/sbin/update-rc.d $service defaults
+done
 
 
 # We are taking care of the LEDs ourselves:
@@ -74,6 +75,12 @@ sed   -e 's/^VOYAGE_LEDS=.*$/VOYAGE_LEDS="NO"/'  -i /etc/default/voyage-util
 
 #Configure netplug to only watch eth0
 echo "eth0" > /etc/netplug/netplugd.conf
+
+
+# Make sure firewall allows ssh and is on after boot
+ufw allow ssh
+ufw logging off
+sed -e 's/^ENABLED=.*$/ENABLED=yes/' -i /etc/ufw/ufw.conf
 
 
 # This is useless, we have our better sync_time
