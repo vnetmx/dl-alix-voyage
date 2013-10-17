@@ -120,6 +120,16 @@ fi
     ./usr/local/sbin/voyage.update -i -P ALIX -t ${CFDEV} -p 1 -b 1 -g -s 38400 -c serial -m ${MNTPNT} -d ${PWD} -U
 )
 
+# Conditional (bind-)mounts
+grep -q " ${MNTPNT} " /proc/mounts || mount ${CFDEV}1 ${MNTPNT}
+UMOUNTS="/"
+
+BINDMOUNTS="/dev /dev/pts /proc"
+for fs in ${BINDMOUNTS} ; do
+    UMOUNTS="${fs} ${UMOUNTS}"
+    grep -q " ${MNTPNT}${fs} " /proc/mounts || mount -o bind {,${MNTPNT}}${fs}
+done
+
 
 # Set DNS resolver
 cat /etc/resolv.conf > ${MNTPNT}/run/resolvconf/resolv.conf
@@ -186,23 +196,15 @@ sed -e "s/^remote.*$/remote $VPN_REMOTE/" -i ${MNTPNT}/etc/openvpn/client.conf
 # (sed 'relayhost' option)
 
 
-#mount ${CFDEV}1 ${MNTPNT}
-BINDMOUNTS="dev/pts proc"
-for fs in ${BINDMOUNTS} ; do
-    mount -o bind {,${MNTPNT}}/${fs}
-done
-BINDMOUNTS="${BINDMOUNTS} dev"
-
 cp -a ${CHROOT_SCRIPT} ${MNTPNT}/tmp/deploy
 chroot ${MNTPNT} /tmp/deploy
 
 # Close bind-mounts
 sleep 5
-for fs in ${BINDMOUNTS} ; do
-    umount ${MNTPNT}/${fs}
+for fs in ${UMOUNTS} ; do
+    umount ${MNTPNT}${fs}
     sleep 2
 done
-umount ${MNTPNT}
 
 
 echo "DONE!"
