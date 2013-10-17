@@ -137,7 +137,8 @@ cat << EOF > ${MNTPNT}/etc/hosts
 EOF
 
 
-chown -R 0:0 ${SKEL}/
+chown -R 0:0 ${SKEL}
+chmod -R go-w ${SKEL}
 rsync -a ${SKEL}/ ${MNTPNT}/
 
 # Apply patches
@@ -153,9 +154,9 @@ echo "/dev/hda2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  ${M
 echo "/dev/hda3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
 
 
-
 #enable rtc
 echo "rtc" >> ${MNTPNT}/etc/modules
+echo "HCTOSYS_DEVICE=rtc" >> ${MNTPNT}/etc/default/hwclock
 
 
 # Set root alias
