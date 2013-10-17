@@ -1,4 +1,18 @@
 #!/bin/bash
+#
+### BEGIN INIT INFO
+# Provides:          sync_clock
+# Required-Start:    hwclock
+# Required-Stop:     
+# Default-Start:     S
+# Default-Stop:      0 1 6
+# Short-Description: Try to guess time if hwclock is not working
+# Description:       Deal with a hardware clock that does not reliably keep
+#                    time across reboots. Tell the system clock it out of
+#                    sync until successful NTP query. Try to guess time from
+#                    timestamp files
+### END INIT INFO
+
 
 #############################################################################
 #
@@ -80,10 +94,13 @@ SYNC_HWCLOCK="1"
 HWCLOCK_OPTIONS=""
 
 # More logging output
-DEBUG=1
+DEBUG=0
+
+# Echo log messages on STDOUT
+ECHO=1
 
 # Additional log file 
-LOG_FILE="/data/logs/sync_clock.log"
+#LOG_FILE="/data/logs/sync_clock.log"
 
 # The presence of this file indicates that the system clock is now in sync 
 # Should get removed early after reboot by 'sync_clock boot'
@@ -115,8 +132,9 @@ if ! [ -x ${LOGGER_BIN} ] ; then
 fi
 
 _log()    { 
+    [ "${ECHO}" = "1" ] && echo "${@}"
     ${LOGGER_BIN}  ${LOGGER_OPTIONS}  --tag "${LOG_TAG}" "${@}" 
-    if [ -n ${LOG_FILE} ] ; then
+    if ! [ "X${LOG_FILE}" = "X" ] && [ -w ${LOG_FILE} ] ; then
 	echo "`date ${TIMEFORMAT}`: ${@}" >> ${LOG_FILE}
     fi
 }
@@ -143,6 +161,13 @@ _lock() {
 # End of nilssons_bash_helpers
 #############################################################################
 
+_check_timestamp_file() {
+    if [ "`find ${TIMESTAMP_FILE} -mtime -0`" = "${TIMESTAMP_FILE}" ] ; then
+        _log "INFO: Found timestamp file ${TIMESTAMP_FILE} in the future (`stat -c %y ${TIMESTAMP_FILE}`)."
+        sudo date --set="`date --reference=${TIMESTAMP_FILE}`" > /dev/null
+        _log "INFO: Set datetime to mtime of ${TIMESTAMP_FILE}"
+    fi
+}
 
 _lock
 
@@ -161,6 +186,13 @@ case $COMMAND in
             _log "INFO: clock sync indicator file ${CLOCK_SYNCED_FILE} found. Removing it."
             rm -f ${CLOCK_SYNCED_FILE}
         fi
+        _check_timestamp_file
+        exit 0
+        ;;
+
+    stop)
+        _log "INFO: Removing ${CLOCK_SYNCED_FILE}"
+	rm -f ${CLOCK_SYNCED_FILE}
         exit 0
         ;;
 esac
@@ -194,11 +226,7 @@ if [ ${ntp_exitcode} -eq 0 ] ; then
     [ "${DEBUG}" = "1" ] && _log "DEBUG: Done"
 else
     _log "WARNING: Synchronizing system clock with ${NTP_SOURCE} FAILED. Assuming we don't have network yet."
-    if [ "`find ${TIMESTAMP_FILE} -mtime -0`" = "${TIMESTAMP_FILE}" ] ; then
-        _log "INFO: Found timestamp file ${TIMESTAMP_FILE} in the future (`stat -c %y ${TIMESTAMP_FILE}`)."
-        sudo date --set="`date --reference=${TIMESTAMP_FILE}`" > /dev/null
-        _log "INFO: Set datetime to mtime of ${TIMESTAMP_FILE}"
-    fi
+    _check_timestamp_file
 fi
 
 
