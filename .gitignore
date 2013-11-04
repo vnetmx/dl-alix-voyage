@@ -28,3 +28,6 @@ nosetests.xml
 
 # My config
 deploy-alix-voyage.conf
+
+# Key files
+*.key
