@@ -164,6 +164,10 @@ echo "/dev/hda2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  ${M
 echo "/dev/hda3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
 
 
+# Module not to be used for ALIX2/3
+sed '/^w83627hf$/d' -i ${MNTPNT}/etc/modules
+
+
 #enable rtc
 echo "rtc" >> ${MNTPNT}/etc/modules
 echo "HCTOSYS_DEVICE=rtc" >> ${MNTPNT}/etc/default/hwclock
