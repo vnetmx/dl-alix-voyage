@@ -65,7 +65,7 @@ echo "root password set to '${ROOTPW}'"
 
 
 # Make sure our ALIX services get started at boot time:
-for service in sync_clock leds reset_button ; do 
+for service in sync_clock sync_future leds reset_button ; do 
     /usr/sbin/update-rc.d $service defaults
 done
 
