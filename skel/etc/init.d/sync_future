@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+### BEGIN INIT INFO
+# Provides:          sync_future
+# Required-Start:    $local_fs
+# Required-Stop:     
+# Default-Start:     S
+# Default-Stop:      0 1 6
+# Short-Description: Check for timestamps in the future
+# Description:       Calling sync_clock at a different stage in the bootup 
+#                    sequence again to check for files with future mtime. 
+### END INIT INFO
+
+
+#############################################################################
+#
+#  (c) Nils Toedtmann 2013 <nils.toedtmann@demandlogic.co.uk>
+#
+#  See /etc/init.d/sync_clock for documentation
+# 
+#############################################################################
+
+
+case "$1" in
+    start|restart)
+        service sync_clock start
+        ;;
+esac
+exit 0
