@@ -1,0 +1,69 @@
+#!/bin/sh
+# Prepare serial port(s)
+#
+### BEGIN INIT INFO
+# Provides:          prepare_serial
+# Required-Start:    kmod
+# Required-Stop:     $all
+# Default-Start:     S
+# Default-Stop:      0 1 6
+# Short-Description: Prepare serial port(s)
+# Description:       Prepare serial port(s), e.g. Baud rate, parity, stop-bits etc
+### END INIT INFO
+
+
+########################################
+# Serial port configuration
+# See 'man 1 stty' for syntax
+#
+#TTYS0="9600  cs8 -cstopb -parenb"
+TTYS1="38400 cs8 -cstopb -parenb"
+TTYUSB0="9600  cs8 -cstopb -parenb"
+TTYUSB1="9600  cs8 -cstopb -parenb"
+########################################
+
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+BIN="/bin/stty"
+
+test -x $BIN || exit 1
+
+
+case "$1" in
+    boot|start|restart)
+        [ -z "${TTYS0}" ]   || $BIN -F /dev/ttyS0 ${TTYS0}
+        [ -z "${TTYS1}" ]   || $BIN -F /dev/ttyS1 ${TTYS1}
+        [ -z "${TTYUSB0}" ] || [ -c /dev/ttyUSB0 ] && $BIN -F /dev/ttyUSB0 ${TTYUSB0}
+        [ -z "${TTYUSB1}" ] || [ -c /dev/ttyUSB1 ] && $BIN -F /dev/ttyUSB0 ${TTYUSB0}
+
+        # Workaround for software (like DLBI) that can only access /dev/ttyS*
+        ln -sf /dev/ttyUSB0 /dev/ttyS100
+        ln -sf /dev/ttyUSB1 /dev/ttyS101
+        ;;
+
+    status)
+        for dev in ttyS0 ttyS1 ttyUSB0 ttyUSB1 ; do
+            dev="/dev/${dev}"
+
+	        if [ -c ${dev} ] ; then
+                echo "\n===== ${dev} ==="
+                $BIN -F ${dev} -a
+            fi
+        done
+        echo ""
+        ;;
+
+    stop)
+        ;;
+
+    enable)
+        /usr/sbin/update-rc.d `basename $0` defaults
+        ;;
+
+    *)	
+        echo "SYNTAX ERROR. Usage: `basename $0` [start|stop]"
+        exit 2
+        ;;
+esac
+
+exit 0
