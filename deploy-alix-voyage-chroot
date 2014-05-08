@@ -37,7 +37,7 @@ unset LANGUAGE LC_ALL LC_PAPER LC_ADDRESS LC_MONETARY LC_NUMERIC LC_TELEPHONE LC
 
 DEL_PACKAGES="dnsmasq rpcbind"
 PRE_PACKAGES="dialog debconf"
-PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump netplug ufw"
+PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump netplug ufw hdparm"
 PACKAGES_DLBI="supervisor subversion python python-dev libevent-dev gcc python-pip"
 PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
