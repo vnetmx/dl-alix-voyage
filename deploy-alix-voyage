@@ -49,7 +49,7 @@ ROOTALIAS="rootmail@example.com"
 RELAYHOST=
 
 SSH_KEYS="nils.toedtmann.dsa.pub"
-SSH_KEY_REPO="https://raw.github.com/nilstoedtmann/sshkeys/master/"
+SSH_KEY_REPO="https://raw.githubusercontent.com/nilstoedtmann/sshkeys/master"
 
 CA_BASE=/path/to/your/certificate/dir
 VPN_CLIENT_CERT=${HOSTNAME}.crt
@@ -108,7 +108,7 @@ mkdir -p $DIST_BASE
 if ! [ -d ${DIST_DIR} ] ; then
     (
         cd $DIST_BASE
-        wget -c http://mirror.voyage.hk/download/voyage/voyage-${VER}.tar.bz2
+        wget -c -4 http://mirror.voyage.hk/download/voyage/voyage-${VER}.tar.bz2
         tar xjf voyage-${VER}.tar.bz2
     )
 fi
@@ -178,9 +178,11 @@ echo "root: ${ROOTALIAS}" >> ${MNTPNT}/etc/aliases
 
 
 mkdir -m 700 ${MNTPNT}/root/.ssh
-for key in ${SSH_KEYS} ; do 
-    wget -qO- "${SSH_KEY_REPO}/${key}" >> ${MNTPNT}/root/.ssh/authorized_keys
+echo 'Appending SSH keys ...'
+for key in ${SSH_KEYS} ; do
+    wget -4 -O- "${SSH_KEY_REPO}/${key}" >> ${MNTPNT}/root/.ssh/authorized_keys
 done
+echo '... SSH keys appended.'
     
 
 # Configure OpenVPN

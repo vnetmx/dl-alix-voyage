@@ -12,7 +12,7 @@
 # RELAYHOST=
 
 # SSH_KEYS="nils.toedtmann.dsa.pub"
-# SSH_KEY_REPO="https://raw.github.com/nilstoedtmann/sshkeys/master/"
+# SSH_KEY_REPO="https://raw.githubusercontent.com/nilstoedtmann/sshkeys/master"
 
 # CA_BASE=/path/to/your/certificate/dir
 # VPN_CLIENT_CERT=${HOSTNAME}.crt
