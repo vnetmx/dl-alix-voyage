@@ -97,7 +97,7 @@ HWCLOCK_OPTIONS=""
 DEBUG=0
 
 # Echo log messages on STDOUT
-ECHO=1
+ECHO=0
 
 # Additional log file 
 #LOG_FILE="/data/logs/sync_clock.log"
