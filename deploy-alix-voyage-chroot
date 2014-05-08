@@ -65,7 +65,7 @@ echo "root password set to '${ROOTPW}'"
 
 
 # Make sure our ALIX services get started at boot time:
-for service in sync_clock sync_future leds reset_button ; do 
+for service in sync_clock sync_future leds reset_button prepare_serial ; do 
     /usr/sbin/update-rc.d $service defaults
 done
 
@@ -94,6 +94,17 @@ kill `cat /run/dhclient.eth0.pid`
 for s in supervisor munin-node inetutils-syslogd postfix openvpn netplug ; do
     service $s stop
 done
+
+
+# Disable serial console (see https://apps.demandlogic.org/trac/wiki/Serial)
+# ... of GRUB:
+sed -e 's/^\(serial .*\)$/#\1/'          -i  /boot/grub/menu.lst
+sed -e 's/^\(terminal serial .*\)$/#\1/' -i  /boot/grub/menu.lst
+# ... of the kernel:
+sed -e 's/console=[^ ]*//' -i  /boot/grub/menu.lst
+# ... and of the OS: 
+sed -e 's/^\(T.* ttyS0 .*\)$/#\1/' -i  /etc/inittab
+
 
 # Exit the CHROOT
 exit 0

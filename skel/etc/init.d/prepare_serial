@@ -16,10 +16,10 @@
 # Serial port configuration
 # See 'man 1 stty' for syntax
 #
-#TTYS0="9600  cs8 -cstopb -parenb"
-TTYS1="38400 cs8 -cstopb -parenb"
-TTYUSB0="9600  cs8 -cstopb -parenb"
-TTYUSB1="9600  cs8 -cstopb -parenb"
+TTYS0="  9600  cs8  -cstopb  -parenb"
+TTYS1=" 38400  cs8  -cstopb  -parenb"
+TTYUSB0="9600  cs8  -cstopb  -parenb"
+TTYUSB1="9600  cs8  -cstopb  -parenb"
 ########################################
 
 
