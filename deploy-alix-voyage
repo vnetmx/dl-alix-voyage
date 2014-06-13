@@ -30,6 +30,8 @@
 # onto a compact flash card (CF) for a PC Engine ALIX board
 #######################################################################
 
+START_TIME=`date +%T`
+START_EPOC=`date +%s`
 
 CFDEV="/dev/doesNotExist"
 MNTPNT="/mnt/cf"
@@ -77,6 +79,9 @@ _log() {
     echo "INFO: ${@}"
 }
 
+
+####################
+_log "Welcome to Demand Logic's ALIX deployment script. Start time is: ${START_TIME}"
 
 ####################
 _log "START STAGE 1/5: Preparing CF"
@@ -258,3 +263,13 @@ done
 
 
 _log "ENDED STAGE 5/5: Clean up"
+echo " "
+
+END_TIME=`date +%T`
+END_EPOC=`date +%s`
+duration_s=$((END_EPOC-START_EPOC))
+duration_m=$((duration_s/60))
+
+_log "Start time: ${START_TIME}"
+_log "End   time: ${END_TIME}"
+_log "Duration:   ${duration_m}min $((duration_s-60*duration_m))s"
