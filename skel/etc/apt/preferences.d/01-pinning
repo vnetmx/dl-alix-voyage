@@ -1,0 +1,15 @@
+Package: *
+Pin: release a=testing
+Pin-Priority: 300
+
+Package: *
+Pin: release a=testing-updates
+Pin-Priority: 300
+
+Package: supervisor
+Pin: release a=testing
+Pin-Priority: 700
+
+Package: supervisor
+Pin: release a=testing-updates
+Pin-Priority: 700
