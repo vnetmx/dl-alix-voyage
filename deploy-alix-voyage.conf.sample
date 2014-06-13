@@ -17,4 +17,5 @@
 # CA_BASE=/path/to/your/certificate/dir
 # VPN_CLIENT_CERT=${HOSTNAME}.crt
 # VPN_CLIENT_KEY=${HOSTNAME}.key
+# VPN_TA_KEY="ta.key"
 # VPN_REMOTE='vpn.example.com 1194'

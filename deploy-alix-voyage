@@ -54,6 +54,7 @@ SSH_KEY_REPO="https://raw.githubusercontent.com/nilstoedtmann/sshkeys/master"
 CA_BASE=/path/to/your/certificate/dir
 VPN_CLIENT_CERT=${HOSTNAME}.crt
 VPN_CLIENT_KEY=${HOSTNAME}.key
+VPN_TA_KEY="ta.key"
 VPN_REMOTE='vpn.example.com 1194'
 
 
@@ -217,6 +218,10 @@ _log "Configuring OpenVPN"
     cp -a ${CA_BASE}/${VPN_CLIENT_CERT} .
     cp -a ${CA_BASE}/${VPN_CLIENT_KEY}  .
     
+    if ! [ "X${VPN_TA_KEY}" = "X" ]; then
+        cp -a ${CA_BASE}/${VPN_TA_KEY}  .
+    fi
+
     ln -s ${VPN_CLIENT_CERT} client.crt
     ln -s ${VPN_CLIENT_KEY}  client.key
 )
