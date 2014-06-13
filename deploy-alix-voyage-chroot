@@ -35,7 +35,7 @@
 export LANG="C"
 unset LANGUAGE LC_ALL LC_PAPER LC_ADDRESS LC_MONETARY LC_NUMERIC LC_TELEPHONE LC_IDENTIFICATION LC_MEASUREMENT LC_TIME LC_NAME
 
-DEL_PACKAGES="dnsmasq rpcbind"
+DEL_PACKAGES="dnsmasq rpcbind hostapd wireless-regdb wpasupplicant"
 PRE_PACKAGES="dialog debconf"
 PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump netplug ufw hdparm"
 PACKAGES_DLBI="supervisor subversion python python-dev libevent-dev gcc python-pip"
