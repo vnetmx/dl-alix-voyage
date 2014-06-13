@@ -70,128 +70,153 @@ perl -e exit  # test locale
 
 
 ####################
-# Prepare CF
+# Functions
+
+_log() {
+    echo "INFO: ${@}"
+}
+
+
+####################
+_log "START STAGE 1/5: Preparing CF"
+
+_log "Installing required packges on the host system" 
 sudo apt-get install parted patch
 
-# Clear partition table
+_log "Clearing partition table on ${CFDEV}"
 dd if=/dev/zero bs=1 seek=446 count=64 of=${CFDEV}
 
-# Create the partitions
+_log "Adding partitions to partition table on ${CFDEV}"
 #echo -e "n\np\n\n\n${ROOTFS_SIZE}\np\nw\n" | fdisk ${CFDEV}
 echo -e "n\np\n\n\n${ROOTFS_SIZE}\nn\np\n\n\n${OPT_FS_SIZE}\nn\np\n\n\n\np\nw\n" | fdisk ${CFDEV}
 
-# Force kernel to re-read the partition table. 
+_log "Forcing kernel to re-read the partition table."
 partprobe ${CFDEV}
 
-# Check whether it worked. If not, remove the CF and re-insert it.
+_log "Checking whether that has worked. If it doesn't, remove the CF and re-insert it."
 fdisk -l ${CFDEV} 
 
-# format the partitions
+_log "Formating the partitions as ext2 (/ and /boot) and ext3 (all others)"
 mkfs.ext2    ${CFDEV}1
 mkfs.ext2    ${CFDEV}2
 mkfs.ext3 -j ${CFDEV}3
 
-# Make sure it does not require regular fs checks:
+_log "Make sure the system partitions (/ and /boot) do not require regular fs checks:"
 tune2fs -c 0 ${CFDEV}1
 tune2fs -c 0 ${CFDEV}2
 
-# DONE preparing CF
-
-# Prepare mountpoint
+_log "Creating mountpoint ${MNTPNT} on host system"
 mkdir -p ${MNTPNT}
 
+_log "ENDED STAGE 1/5: Preparing CF"
+echo " "
 
 #########################
-# Fetch and install Voyage
+_log "START STAGE 2/5: Installation of Voyage Linux onto CF"
+
+_log "Creating install dir ${DIST_DIR} if it doesn't exist"
 mkdir -p $DIST_BASE
 
 if ! [ -d ${DIST_DIR} ] ; then
+    VOYAGE_TARBALL="voyage-${VER}.tar.bz2"
+    VOYAGE_URL="http://mirror.voyage.hk/download/voyage/${VOYAGE_TARBALL}"
+    _log "Fetching Voyage binary distribution tarball ${VOYAGE_URL}"
     (
         cd $DIST_BASE
-        wget -c -4 http://mirror.voyage.hk/download/voyage/voyage-${VER}.tar.bz2
-        tar xjf voyage-${VER}.tar.bz2
+        wget -c -4 ${VOYAGE_URL}
+        tar xjf ${VOYAGE_TARBALL}
     )
 fi
 
 
-# Install voyage onto ${CFDEV}
+_log "KEY STEP: Installing now Voyage Linux onto ${CFDEV}!"
 ( 
     cd ${DIST_DIR}
     ./usr/local/sbin/voyage.update -i -P ALIX -t ${CFDEV} -p 1 -b 1 -g -s 38400 -c serial -m ${MNTPNT} -d ${PWD} -U
 )
 
-# Conditional (bind-)mounts
+_log "Mounting ${CFDEV}1 on DAD root ${MNTPNT} (if it isn't already)"
 grep -q " ${MNTPNT} " /proc/mounts || mount ${CFDEV}1 ${MNTPNT}
-UMOUNTS="/"
 
+
+UMOUNTS="/"
 BINDMOUNTS="/dev /dev/pts /proc"
 for fs in ${BINDMOUNTS} ; do
+    _log "Bind-mounting ${fs} into DAD root ${MNTPNT} (if it isn't already)"
     UMOUNTS="${fs} ${UMOUNTS}"
     grep -q " ${MNTPNT}${fs} " /proc/mounts || mount -o bind {,${MNTPNT}}${fs}
 done
 
 
-# Set DNS resolver
+_log "ENDED STAGE 2/5: Installation of Voyage Linux onto CF"
+echo " "
+
+#########################
+_log "ENDED STAGE 3/5: Configure Voyage Linux (1/2) from the host system"
+
+_log "Creating install dir ${DIST_DIR} if it doesn't exist"
+_log "Copying DNS resolver setting from host system"
 cat /etc/resolv.conf > ${MNTPNT}/run/resolvconf/resolv.conf
 
 
-# Set hostname
+_log "Setting hostname"
 echo ${HOSTNAME} > ${MNTPNT}/etc/hostname
 echo ${HOSTNAME} > ${MNTPNT}/etc/mailname
 
 
-# Prepare /etc/hosts
+_log "Preparing /etc/hosts table"
 cat << EOF > ${MNTPNT}/etc/hosts
 127.0.0.1 localhost
 127.0.1.1 ${HOSTNAME}
 EOF
 
 
+_log "rsync'ing skeleton directory into DAD root"
 chown -R 0:0 ${SKEL}
 chmod -R go-w ${SKEL}
 rsync -a ${SKEL}/ ${MNTPNT}/
 
-# Apply patches
+
+_log "Applying patches to some files"
 for file in /etc/init.d/halt ; do
     patch ${MNTPNT}${file} < ${MNTPNT}${file}.patch
     rm ${MNTPNT}${file}.patch
 done
 
 
-# Add partisions to fstab
+_log "Adding partitions to fstab"
 mkdir -p ${MNTPNT}/{opt,data}
 echo "/dev/hda2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
 echo "/dev/hda3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
 
 
-# Module not to be used for ALIX2/3
+_log "Disabling module not to be used for ALIX2/3"
 sed '/^w83627hf$/d' -i ${MNTPNT}/etc/modules
 
 
-#enable rtc
+_log "Enabling system to read/set Real-Time clock (RTC)"
 echo "rtc" >> ${MNTPNT}/etc/modules
 echo "HCTOSYS_DEVICE=rtc" >> ${MNTPNT}/etc/default/hwclock
 
 
-# Set root alias
+_log "Setting root mail alias"
 echo "root: ${ROOTALIAS}" >> ${MNTPNT}/etc/aliases
 
 
 mkdir -m 700 ${MNTPNT}/root/.ssh
-echo 'Appending SSH keys ...'
 for key in ${SSH_KEYS} ; do
+    _log "Appending SSH ${key}"
     wget -4 -O- "${SSH_KEY_REPO}/${key}" >> ${MNTPNT}/root/.ssh/authorized_keys
 done
-echo '... SSH keys appended.'
     
 
-# Configure OpenVPN
+_log "Configuring OpenVPN"
 (
     cd ${MNTPNT}/etc/openvpn/
 
     cp -a ${CA_BASE}/${VPN_CLIENT_CERT} .
     cp -a ${CA_BASE}/${VPN_CLIENT_KEY}  .
-
+    
     ln -s ${VPN_CLIENT_CERT} client.crt
     ln -s ${VPN_CLIENT_KEY}  client.key
 )
@@ -202,15 +227,29 @@ sed -e "s/^remote.*$/remote $VPN_REMOTE/" -i ${MNTPNT}/etc/openvpn/client.conf
 # (sed 'relayhost' option)
 
 
+_log "ENDED STAGE 3/5: Configure Voyage Linux (1/2) from the host system"
+echo " "
+
+#########################
+_log "START STAGE 4/5: Configure Voyage Linux (2/2) from inside the DAD's system root"
+
+_log "Executing ${CHROOT_SCRIPT} chroot'ed within DAD system root ${MNTPNT}"
 cp -a ${CHROOT_SCRIPT} ${MNTPNT}/tmp/deploy
 chroot ${MNTPNT} /tmp/deploy
+
+_log "ENDED STAGE 4/5: Configure Voyage Linux (2/2) from inside the DAD's system root"
+echo " "
+
+#########################
+_log "START STAGE 5/5: Clean up"
 
 # Close bind-mounts
 sleep 5
 for fs in ${UMOUNTS} ; do
+    _log "Unmounting ${MNTPNT}${fs}"
     umount ${MNTPNT}${fs}
     sleep 2
 done
 
 
-echo "DONE!"
+_log "ENDED STAGE 5/5: Clean up"
