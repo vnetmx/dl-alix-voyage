@@ -39,6 +39,15 @@ PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
 
 
+####################
+# Functions
+
+_log() {
+        echo -e "\n\n=== INFO: ${@} ==="
+}
+
+
+####################
 # Set simple locale for perl
 unset LANGUAGE LC_ALL LC_PAPER LC_ADDRESS LC_MONETARY LC_NUMERIC LC_TELEPHONE LC_IDENTIFICATION LC_MEASUREMENT LC_TIME LC_NAME
 export LC_ALL=C LANGUAGE=C LANG=C 
@@ -46,64 +55,83 @@ export LC_ALL=C LANGUAGE=C LANG=C
 # Tell dpkg to run non-interactively
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 
+
+_log "Removing undesired packages ${DEL_PACKAGES}"
 apt-get -y remove --purge ${DEL_PACKAGES}
+
+
+_log "Autoremoving stale dependancies"
 apt-get -y autoremove
+
+
+_log "Updating repository meta data"
 apt-get update
 
-# Prepare installation of other packages
+
+_log "Installing pre-requirements ${PRE_PACKAGES}"
 apt-get -y install ${PRE_PACKAGES}
 
+
+_log "Preconfiguring choices for to-be-installed packages"
 HOSTNAME=`cat /etc/hostname`
 echo "postfix postfix/mailname          string  ${HOSTNAME}"      | debconf-set-selections
 echo "postfix postfix/main_mailer_type  select  No configuration" | debconf-set-selections
-
 echo "tzdata    tzdata/Areas        select  Etc" | debconf-set-selections
 echo "tzdata    tzdata/Zones/Etc    select  GMT" | debconf-set-selections
 
+
+_log "Upgrading system"
 apt-get -y upgrade
+
+
+_log "Installing packages ${PACKAGES}"
 apt-get -y install ${PACKAGES}
+
+
+_log "Stopping any services that might be running after their installation"
+for s in supervisor munin-node inetutils-syslogd postfix openvpn netplug ; do
+    service $s stop
+done
+DHC_PID="/var/run/dhclient.eth0.pid"
+[ -f ${DHC_PID} ] && kill -HUP `cat ${DHC_PID}` && rm ${DHC_PID}
+
+
+_log "Cleaning up package cache"
 apt-get clean 
 
 
-# Set random root password
+_log "Setting random root password"
 ROOTPW=`dd if=/dev/urandom bs=1 count=15 2>/dev/null | base64 -w 0 | tr -d '=' | tr '/+' '.-'` 
 echo "root:${ROOTPW}" | chpasswd
 echo "root password set to '${ROOTPW}'"
 
 
-# Make sure our ALIX services get started at boot time:
+_log "Making sure our ALIX services get started at boot time"
 for service in sync_clock sync_future leds reset_button prepare_serial ; do 
     /usr/sbin/update-rc.d $service defaults
 done
 
 
-# We are taking care of the LEDs ourselves:
+_log "Disabling Voyages default LED handler, we are taking care of the LEDs ourselves"
 sed   -e 's/^VOYAGE_LEDS=.*$/VOYAGE_LEDS="NO"/'  -i /etc/default/voyage-util
 
 
-#Configure netplug to only watch eth0
+_log "Configuring netplug to only watch eth0"
 echo "eth0" > /etc/netplug/netplugd.conf
 
 
-# Make sure firewall allows ssh and is on after boot
+_log "Make sure firewall allows ssh and is on after boot"
 ufw allow ssh
 ufw logging off
 sed -e 's/^ENABLED=.*$/ENABLED=yes/' -i /etc/ufw/ufw.conf
 
 
-# This is useless, we have our better sync_time
+_log "Disabling useless /etc/network/if-up.d/ntpdate, we have our better sync_time"
 chmod -x /etc/network/if-up.d/ntpdate
 
 
-# Clean up
-kill `cat /run/dhclient.eth0.pid`
-# Stop any services that migh be running after their installation
-for s in supervisor munin-node inetutils-syslogd postfix openvpn netplug ; do
-    service $s stop
-done
 
-
-# Disable serial console (see https://apps.demandlogic.org/trac/wiki/Serial)
+_log "Disable serial console (see https://apps.demandlogic.org/trac/wiki/Serial)"
 # ... of GRUB:
 sed -e 's/^\(serial .*\)$/#\1/'          -i  /boot/grub/menu.lst
 sed -e 's/^\(terminal serial .*\)$/#\1/' -i  /boot/grub/menu.lst
@@ -113,10 +141,10 @@ sed -e 's/console=[^ ]*//' -i  /boot/grub/menu.lst
 sed -e 's/^\(T.* ttyS0 .*\)$/#\1/' -i  /etc/inittab
 
 
-# Make sure there is at least an empty /etc/default/locale to prevent sshd from whining
+_log "Making sure there is at least an empty /etc/default/locale to prevent sshd from whining"
 touch /etc/default/locale
 
 
-# Exit the CHROOT
+_log "Exiting the chroot"
 exit 0
 
