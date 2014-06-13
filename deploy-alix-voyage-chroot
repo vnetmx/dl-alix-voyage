@@ -106,6 +106,10 @@ sed -e 's/console=[^ ]*//' -i  /boot/grub/menu.lst
 sed -e 's/^\(T.* ttyS0 .*\)$/#\1/' -i  /etc/inittab
 
 
+# Make sure there is at least an empty /etc/default/locale to prevent sshd from whining
+touch /etc/default/locale
+
+
 # Exit the CHROOT
 exit 0
 
