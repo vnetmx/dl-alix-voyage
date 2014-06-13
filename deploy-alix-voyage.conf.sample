@@ -1,7 +1,7 @@
-
 # CFDEV="/dev/doesNotExist"
 # MNTPNT="/mnt/cf"
-# ROOTFS_SIZE="+1000M"
+# ROOTFS_SIZE="+1G"
+# OPT_FS_SIZE="+1G"
 
 # VER="0.9.1"
 # DIST_BASE=/tmp
