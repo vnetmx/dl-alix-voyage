@@ -1,2 +1,10 @@
 deb  http://mirror.voyage.hk/dists/0.9           ./
+
+
+# By default we don't use  Voyage's "Experimental" APT repository. Many 
+# of its packages are from Debian Testing anyway.
+# Make sure you import its key before you activate it:
+#
+#     wget http://www.voyage.hk/dists/experimental/archive.key -O - | apt-key add - 
+#
 #deb http://mirror.voyage.hk/dists/experimental  ./
