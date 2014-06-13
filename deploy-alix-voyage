@@ -76,7 +76,7 @@ perl -e exit  # test locale
 # Functions
 
 _log() {
-    echo "INFO: ${@}"
+    echo -e "\n\n=== INFO: ${@} ==="
 }
 
 
@@ -86,7 +86,7 @@ _log "Welcome to Demand Logic's ALIX deployment script. Start time is: ${START_T
 ####################
 _log "START STAGE 1/5: Preparing CF"
 
-_log "Installing required packges on the host system" 
+_log "Installing required packages on the host system" 
 sudo apt-get install parted patch
 
 _log "Clearing partition table on ${CFDEV}"
@@ -115,7 +115,6 @@ _log "Creating mountpoint ${MNTPNT} on host system"
 mkdir -p ${MNTPNT}
 
 _log "ENDED STAGE 1/5: Preparing CF"
-echo " "
 
 #########################
 _log "START STAGE 2/5: Installation of Voyage Linux onto CF"
@@ -238,7 +237,6 @@ sed -e "s/^remote.*$/remote $VPN_REMOTE/" -i ${MNTPNT}/etc/openvpn/client.conf
 
 
 _log "ENDED STAGE 3/5: Configure Voyage Linux (1/2) from the host system"
-echo " "
 
 #########################
 _log "START STAGE 4/5: Configure Voyage Linux (2/2) from inside the DAD's system root"
@@ -248,7 +246,6 @@ cp -a ${CHROOT_SCRIPT} ${MNTPNT}/tmp/deploy
 chroot ${MNTPNT} /tmp/deploy
 
 _log "ENDED STAGE 4/5: Configure Voyage Linux (2/2) from inside the DAD's system root"
-echo " "
 
 #########################
 _log "START STAGE 5/5: Clean up"
@@ -263,13 +260,10 @@ done
 
 
 _log "ENDED STAGE 5/5: Clean up"
-echo " "
 
 END_TIME=`date +%T`
 END_EPOC=`date +%s`
 duration_s=$((END_EPOC-START_EPOC))
 duration_m=$((duration_s/60))
 
-_log "Start time: ${START_TIME}"
-_log "End   time: ${END_TIME}"
-_log "Duration:   ${duration_m}min $((duration_s-60*duration_m))s"
+_log "Started ${START_TIME},  finished ${END_TIME},  duration ${duration_m}min $((duration_s-60*duration_m))s"
