@@ -1,0 +1,78 @@
+#!/bin/bash
+
+CONFIG_FILE="/etc/connection-test.conf"
+
+DEVS="eth0"
+RESOLVCONF="/var/run/dnsmasq/resolv.conf"
+DNS_TXT_RECORD="google.com"
+DNS_RESPONSE_EXPECTED="v=spf1 include:_spf.google.com ip4:216.73.93.70/31 ip4:216.73.93.72/31 ~all"
+PING_TARGETS="8.8.4.4"   # Google public DNS server
+
+
+[ -r ${CONFIG_FILE} ] && . ${CONFIG_FILE}
+
+
+_loss() {
+    ping -c5 -i .2 -n -q $1 | grep loss | sed -e 's/^.* \([^ ]*\) packet loss.*$/\1/'
+}
+
+_dev_status() {
+    _DEV=$1
+
+    if [ -d /sys/class/net/${_DEV} ] ; then
+        DEV_STATUS=`ip link sh ${_DEV} | grep CAST | sed -e 's/^.*<//' -e 's/>.*$//'`
+        DEV_IP=`ip addr sh ${_DEV} | grep 'inet ' | awk '{print $2}'`
+        echo -n "${_DEV}:status=${DEV_STATUS}"
+
+        if [ "X${DEV_IP}" = "X" ] ; then
+            echo -n ",ip=NONE; "
+        else
+            echo -n ",ip=${DEV_IP}; "
+        fi
+    else
+        echo -n "${_DEV}:NOT_FOUND; "
+    fi
+}
+
+
+echo -n "date=`date -u +%Y.%m.%d-%H:%M:%S`; "
+
+
+ROUTER_LINE=`ip route | grep ^default`
+ROUTER_IP=`echo "${ROUTER_LINE}" | sed -e 's/^.*via //' | cut -d ' ' -f 1`
+DEFAULT_DEV=`echo "${ROUTER_LINE}" | sed -e 's/^.*dev //' | cut -d ' ' -f 1`
+DNS_IPS=`cat /var/run/dnsmasq/resolv.conf | grep ^nameserver | awk '{print $2}' | tr '\n' ' ' | sed -e 's/ $//' -e 's/  */+/g'`
+
+if echo "${DEVS}" | grep -q ${DEFAULT_DEV}; then
+    :
+else
+    DEVS="${DEFAULT_DEV} ${DEVS}"
+fi
+
+
+for DEV in ${DEVS}; do
+    _dev_status ${DEV}
+done
+
+
+if [ "X${ROUTER_IP}" = "X" ] ; then
+    echo -n "router:ip=NONE; "
+else
+    echo -n "router:ip=${ROUTER_IP},loss=`_loss ${ROUTER_IP}`; "
+fi
+
+
+DNS_RESPONSE=`host -t txt ${DNS_TXT_RECORD} | sed -e 's/^.* descriptive text //' -e 's/"//g'`
+if [ "X${DNS_RESPONSE}" = "X${DNS_RESPONSE_EXPECTED}" ] ; then
+    echo -n "DNS:ips=${DNS_IPS},resolv=SUCCESS; "
+else
+    echo -n "DNS:ips=${DNS_IPS},resolv=FAIL; "
+fi
+
+
+for target in ${PING_TARGETS}; do
+    echo -n "PINGTEST:ip=${target},loss=`_loss ${target}`; "
+done
+
+
+echo ""
