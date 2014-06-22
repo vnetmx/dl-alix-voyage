@@ -64,6 +64,10 @@ _log "Autoremoving stale dependancies"
 apt-get -y autoremove
 
 
+_log "Importing APT key for Voyage's experimental repo" 
+apt-key add /tmp/voyage-experimental.key
+
+
 _log "Updating repository meta data"
 apt-get update
 

@@ -1,15 +1,27 @@
 Package: *
-Pin: release a=testing
+Pin: origin mirror.voyage.hk
+Pin-Priority: 300
+
+Package: linux-image-*-voyage
+Pin: origin mirror.voyage.hk
+Pin-Priority: 700
+
+Package: voyage-util
+Pin: origin mirror.voyage.hk
+Pin-Priority: 700
+
+Package: *
+Pin: release o=Debian,a=testing
 Pin-Priority: 300
 
 Package: *
-Pin: release a=testing-updates
+Pin: release o=Debian,a=testing-updates
 Pin-Priority: 300
 
 Package: supervisor
-Pin: release a=testing
+Pin: release o=Debian,a=testing
 Pin-Priority: 700
 
 Package: supervisor
-Pin: release a=testing-updates
+Pin: release o=Debian,a=testing-updates
 Pin-Priority: 700
