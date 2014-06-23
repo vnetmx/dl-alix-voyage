@@ -7,6 +7,7 @@
 # DIST_BASE=/tmp
 # DIST_DIR=${DIST_BASE}/voyage-${VER}
 # APT_CACHE=${DIST_BASE}voyage-apt-cache
+# CHNAME=${DIST_BASE}/chname/chname
 
 # HOSTNAME="voyage.example.com"
 # ROOTALIAS="rootmail@example.com"

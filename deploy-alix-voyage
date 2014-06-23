@@ -42,7 +42,8 @@ VER="0.9.2"
 DIST_BASE=${PWD}
 DIST_DIR=${DIST_BASE}/voyage-${VER}
 APT_CACHE=${DIST_BASE}/voyage-apt-cache
-APT_CACHE_MP="/var/cache/apt/"
+APT_CACHE_MP="/var/cache/apt"
+CHNAME=${DIST_BASE}/chname/chname
 
 BASE="$(cd "$(dirname "$0")" ; pwd)"
 SKEL="${BASE}/skel"
@@ -61,6 +62,13 @@ VPN_CLIENT_KEY=${HOSTNAME}.key
 VPN_TA_KEY="ta.key"
 VPN_REMOTE='vpn.example.com 1194'
 
+BINDMOUNTS="/proc /sys /dev /dev/pts"
+UMOUNTS="${APT_CACHE_MP} /"
+for fs in ${BINDMOUNTS} ; do
+    UMOUNTS="${fs} ${UMOUNTS}"
+done
+
+LOG_PREFIX='\n\n=== INFO: '
 
 CONF=${BASE}/deploy-alix-voyage.conf
 if [ -r $CONF ] ; then
@@ -78,8 +86,99 @@ perl -e exit  # test locale
 # Functions
 
 _log() {
-    echo -e "\n\n=== INFO: ${@} ==="
+    echo -e "${LOG_PREFIX} ${@} ==="
 }
+
+
+_mount() {
+    _log "Mounting DAD filesystems:"
+
+    if grep -q " ${MNTPNT} " /proc/mounts ; then
+        _log "    ${CFDEV}1 already mounted as ${MNTPNT}"
+    else     
+        _log "    Mounting ${CFDEV}1 as DAD root ${MNTPNT}"
+        mount ${CFDEV}1 ${MNTPNT}
+    fi
+
+    for fs in ${BINDMOUNTS} ; do
+        if grep -q " ${MNTPNT}${fs} " /proc/mounts ; then
+            _log "    ${fs} already bind-mounted DAD root "
+        else
+            _log "    Bind-mounting ${fs} into DAD root ${MNTPNT}"
+            mount -o bind {,${MNTPNT}}${fs}
+        fi
+    done
+
+    if grep -q " ${MNTPNT}${APT_CACHE_MP} " /proc/mounts ; then
+        _log "    ${APT_CACHE} already bind-mouted as ${MNTPNT}${APT_CACHE_MP}"
+    else
+        _log "    Bind-mounting ${APT_CACHE} into DAD root ${MNTPNT}${APT_CACHE_MP}"
+        mount -o bind ${APT_CACHE} ${MNTPNT}${APT_CACHE_MP}
+    fi
+
+}
+
+
+_umount() {
+    _log "Trying to unmount all loop & bind mounts:"
+    for fs in ${UMOUNTS} ; do
+        fs="${fs%/}"
+        if grep -q " ${MNTPNT}${fs} " /proc/mounts ; then
+            _log "    Unmounting ${MNTPNT}${fs}"
+            umount ${MNTPNT}${fs}
+            sleep 1
+        else
+            _log "    ${MNTPNT}${fs} currently not mounted, no need to unmount"
+        fi
+    done
+}
+
+
+_chroot() {
+    CMD=${1}
+    [ "X${CMD}" = "X" ] && CMD="/bin/bash -i"
+
+    if [ -x ${CHNAME} ] ; then
+        _CHROOT="${CHNAME} ${HOSTNAME} chroot"
+    else 
+        _log "INFO: 'chname' not not found, falling back to standard 'chroot'. Please install ('svn checkout http://chname.googlecode.com/svn/trunk/ chname)', build ('make') and set 'CHNAME' accordingly."
+        _CHROOT="chroot"
+    fi
+
+    ${_CHROOT} ${MNTPNT} ${CMD}
+}
+
+
+####################
+LOG_PREFIX='=== '
+case ${1} in
+    mount)  
+        _mount
+        exit 0
+        ;;
+
+    umount)
+        _umount
+        exit 0
+        ;;
+
+    chroot)
+        _mount
+        _chroot
+        _log "INFO: If you don't interrupt with <CTRL>-<C> within the next 5 seconds, i will unmount the DAD file systems again"
+        sleep 5
+        _umount
+        exit 0
+        ;;
+    install)
+        :
+        ;;
+    *)
+        _log "ERROR: No valid command given! Usage:\n\n    `basename $0` [install|mount|umount|chroot]\n\n"
+        exit 1
+
+esac
+LOG_PREFIX='\n\n=== INFO: '
 
 
 ####################
@@ -87,6 +186,8 @@ _log "Welcome to Demand Logic's ALIX deployment script. Start time is: ${START_T
 
 ####################
 _log "START STAGE 1/5: Preparing CF"
+
+_umount
 
 _log "Installing required packages on the host system" 
 sudo apt-get install parted patch
@@ -142,22 +243,8 @@ _log "KEY STEP: Installing now Voyage Linux onto ${CFDEV}!"
     ./usr/local/sbin/voyage.update -i -P ALIX -t ${CFDEV} -p 1 -b 1 -g -s 38400 -c serial -m ${MNTPNT} -d ${PWD} -U
 )
 
-_log "Mounting ${CFDEV}1 on DAD root ${MNTPNT} (if it isn't already)"
-grep -q " ${MNTPNT} " /proc/mounts || mount ${CFDEV}1 ${MNTPNT}
 
-
-UMOUNTS="/"
-BINDMOUNTS="/dev /dev/pts /proc"
-for fs in ${BINDMOUNTS} ; do
-    _log "Bind-mounting ${fs} into DAD root ${MNTPNT} (if it isn't already)"
-    UMOUNTS="${fs} ${UMOUNTS}"
-    grep -q " ${MNTPNT}${fs} " /proc/mounts || mount -o bind {,${MNTPNT}}${fs}
-done
-
-
-_log "Bind-mounting ${APT_CACHE} into DAD root ${MNTPNT}${APT_CACHE_MP} (if it isn't already)"
-UMOUNTS="${APT_CACHE_MP} ${UMOUNTS}"
-grep -q " ${MNTPNT}${APT_CACHE_MP} " /proc/mounts || mount -o bind ${APT_CACHE} ${MNTPNT}${APT_CACHE_MP}
+_mount
 
 
 _log "ENDED STAGE 2/5: Installation of Voyage Linux onto CF"
@@ -259,11 +346,7 @@ _log "START STAGE 5/5: Clean up"
 
 # Close bind-mounts
 sleep 5
-for fs in ${UMOUNTS} ; do
-    _log "Unmounting ${MNTPNT}${fs}"
-    umount ${MNTPNT}${fs}
-    sleep 2
-done
+_umount
 
 
 _log "ENDED STAGE 5/5: Clean up"
