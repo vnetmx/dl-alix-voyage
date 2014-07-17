@@ -1,13 +1,13 @@
 Package: *
-Pin: origin mirror.voyage.hk
+Pin: origin de.voyage.hk
 Pin-Priority: 300
 
 #Package: linux-image-*-voyage
-#Pin: origin mirror.voyage.hk
+#Pin: origin de.voyage.hk
 #Pin-Priority: 700
 
 #Package: voyage-util
-#Pin: origin mirror.voyage.hk
+#Pin: origin de.voyage.hk
 #Pin-Priority: 700
 
 Package: *
