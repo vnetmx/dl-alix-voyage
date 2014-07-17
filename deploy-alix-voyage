@@ -75,6 +75,7 @@ if [ -r $CONF ] ; then
     . $CONF
 fi
 
+_OLDHOME=${HOME}
 
 # Set simple locale
 export LANG="C"
@@ -142,10 +143,13 @@ _chroot() {
         _CHROOT="${CHNAME} ${HOSTNAME} chroot"
     else 
         _log "INFO: 'chname' not not found, falling back to standard 'chroot'. Please install ('svn checkout http://chname.googlecode.com/svn/trunk/ chname)', build ('make') and set 'CHNAME' accordingly."
+
         _CHROOT="chroot"
     fi
 
+    export HOME="/root"
     ${_CHROOT} ${MNTPNT} ${CMD}
+    export HOME=${_OLDHOME}
 }
 
 
@@ -227,7 +231,7 @@ mkdir -p $DIST_BASE
 
 if ! [ -d ${DIST_DIR} ] ; then
     VOYAGE_TARBALL="voyage-${VER}.tar.bz2"
-    VOYAGE_URL="http://mirror.voyage.hk/download/voyage/${VOYAGE_TARBALL}"
+    VOYAGE_URL="http://uk.voyage.hk/download/voyage/${VOYAGE_TARBALL}"
     _log "Fetching Voyage binary distribution tarball ${VOYAGE_URL}"
     (
         cd $DIST_BASE
@@ -285,8 +289,8 @@ done
 
 _log "Adding partitions to fstab"
 mkdir -p ${MNTPNT}/{opt,data}
-echo "/dev/hda2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
-echo "/dev/hda3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
+echo "/dev/${CFDEV_VOYAGE}2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
+echo "/dev/${CFDEV_VOYAGE}3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
 
 
 _log "Disabling module not to be used for ALIX2/3"
