@@ -37,6 +37,7 @@ PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procma
 PACKAGES_DLBI="supervisor subversion python python-dev libevent-dev gcc python-pip"
 PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
+DONT_DISABLE_SERIAL="YES"
 
 
 ####################
@@ -136,19 +137,26 @@ _log "Disabling useless /etc/network/if-up.d/ntpdate, we have our better sync_ti
 chmod -x /etc/network/if-up.d/ntpdate
 
 
-
-_log "Disable serial console (see https://apps.demandlogic.org/trac/wiki/Serial)"
-# ... of GRUB:
-sed -e 's/^\(serial .*\)$/#\1/'          -i  /boot/grub/menu.lst
-sed -e 's/^\(terminal serial .*\)$/#\1/' -i  /boot/grub/menu.lst
-# ... of the kernel:
-sed -e 's/console=[^ ]*//' -i  /boot/grub/menu.lst
-# ... and of the OS: 
-sed -e 's/^\(T.* ttyS0 .*\)$/#\1/' -i  /etc/inittab
+if [ "X${DONT_DISABLE_SERIAL}" = "XYES" ]; then
+    _log "Not disabling serial console COM1/ttyS0"
+else
+    _log "Disabling serial console COM1/ttyS0 (see https://apps.demandlogic.org/trac/wiki/Serial)"
+    # ... of GRUB:
+    sed -e 's/^\(serial .*\)$/#\1/'          -i  /boot/grub/menu.lst
+    sed -e 's/^\(terminal serial .*\)$/#\1/' -i  /boot/grub/menu.lst
+    # ... of the kernel:
+    sed -e 's/console=[^ ]*//' -i  /boot/grub/menu.lst
+    # ... and of the OS: 
+    sed -e 's/^\(T.* ttyS0 .*\)$/#\1/' -i  /etc/inittab
+fi
 
 
 _log "Making sure there is at least an empty /etc/default/locale to prevent sshd from whining"
 touch /etc/default/locale
+
+
+_log "Updating clock timestamp"
+touch /etc/sync_clock_timestamp
 
 
 _log "Exiting the chroot"
