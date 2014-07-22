@@ -33,7 +33,7 @@
 
 DEL_PACKAGES="dnsmasq rpcbind hostapd wireless-regdb wpasupplicant"
 PRE_PACKAGES="dialog debconf"
-PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump netplug ufw hdparm"
+PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump ufw hdparm"
 PACKAGES_DLBI="supervisor subversion python python-dev libevent-dev gcc python-pip"
 PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
@@ -55,6 +55,21 @@ export LC_ALL=C LANGUAGE=C LANG=C
 
 # Tell dpkg to run non-interactively
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
+
+
+_log "Creating MOTD"
+VOYAGE_VERSION="Voyage Linux `cat /etc/voyage_version`"
+BASED_ON=`grep -r "Voyage ${VOYAGE_VERSION}" /README | sed -e's/^  *\* /Debian /' -e 's/\ - .*$//' -e 's/, /, Linux kernel /'`
+DEPLOY_DATE=`date +%Y-%m-%d`
+cat /etc/motd.dl.template | sed \
+    -e "s/__VOYAGE_VERSION__/${VOYAGE_VERSION}/" \
+    -e "s/__BASED_ON__/${BASED_ON}/"  \
+    -e "s/__DEPLOY_DATE__/${DEPLOY_DATE}/" > /etc/motd
+
+
+_log "Moving /var/spool into /data"
+mv /var/spool /data/var-spool
+ln -s /data/var-spool/ /var/spool
 
 
 _log "Removing undesired packages ${DEL_PACKAGES}"
@@ -96,11 +111,21 @@ apt-get -y install ${PACKAGES}
 
 
 _log "Stopping any services that might be running after their installation"
-for s in supervisor munin-node inetutils-syslogd postfix openvpn netplug ; do
+for s in supervisor munin-node inetutils-syslogd postfix openvpn ; do
     service $s stop
 done
 DHC_PID="/var/run/dhclient.eth0.pid"
 [ -f ${DHC_PID} ] && kill -HUP `cat ${DHC_PID}` && rm ${DHC_PID}
+
+
+_log "Moving /var/lib/postfix into /data"
+mv /var/lib/postfix/ /data/var-lib-postfix 
+ln -s /data/var-lib-postfix/ /var/lib/postfix 
+
+
+_log "Moving /etc/adjtime into /data"
+mv /etc/adjtime  /data/clock/
+ln -s /data/clock/adjtime /etc/adjtime
 
 
 _log "Cleaning up package cache"
@@ -113,18 +138,27 @@ echo "root:${ROOTPW}" | chpasswd
 echo "root password set to '${ROOTPW}'"
 
 
+_log "Make sudo use writable timestamp dir"
+echo '' >>  /etc/sudoers
+echo 'Defaults        timestampdir="/run/sudo"' >>  /etc/sudoers
+mkdir /run/sudo
+
+
 _log "Making sure our ALIX services get started at boot time"
-for service in sync_clock sync_future leds reset_button prepare_serial ; do 
+for service in leds reset_button prepare_serial ; do 
     /usr/sbin/update-rc.d $service defaults
 done
+/usr/sbin/update-rc.d  sync_clock      start 10 S 2 3 4 5 .  stop 90 0 1 6 .
+/usr/sbin/update-rc.d  prepare_serial  start 91   2 3 4 5 .
+#/usr/sbin/update-rc.d  prepare_serial  start 10 S .
 
 
 _log "Disabling Voyages default LED handler, we are taking care of the LEDs ourselves"
 sed   -e 's/^VOYAGE_LEDS=.*$/VOYAGE_LEDS="NO"/'  -i /etc/default/voyage-util
 
 
-_log "Configuring netplug to only watch eth0"
-echo "eth0" > /etc/netplug/netplugd.conf
+_log "Configuring ifplugd to only watch eth0"
+sed -e 's/^INTERFACES=.*$/INTERFACES="eth0"/'  -i  /etc/default/ifplugd
 
 
 _log "Make sure firewall allows ssh and is on after boot"
@@ -137,17 +171,21 @@ _log "Disabling useless /etc/network/if-up.d/ntpdate, we have our better sync_ti
 chmod -x /etc/network/if-up.d/ntpdate
 
 
+# See https://apps.demandlogic.org/trac/wiki/Serial
 if [ "X${DONT_DISABLE_SERIAL}" = "XYES" ]; then
     _log "Not disabling serial console COM1/ttyS0"
 else
-    _log "Disabling serial console COM1/ttyS0 (see https://apps.demandlogic.org/trac/wiki/Serial)"
+    _log "Disabling serial console COM1/ttyS0"
     # ... of GRUB:
     sed -e 's/^\(serial .*\)$/#\1/'          -i  /boot/grub/menu.lst
-    sed -e 's/^\(terminal serial .*\)$/#\1/' -i  /boot/grub/menu.lst
+    sed -e 's/^\(terminal serial.*\)$/#\1/'  -i  /boot/grub/menu.lst
     # ... of the kernel:
     sed -e 's/console=[^ ]*//' -i  /boot/grub/menu.lst
     # ... and of the OS: 
     sed -e 's/^\(T.* ttyS0 .*\)$/#\1/' -i  /etc/inittab
+
+    _log "Reducing GRUB timeout to 1sec"
+    sed -e 's/^timeout .*$/timeout 1/'  -i /boot/grub/menu.lst
 fi
 
 
@@ -156,8 +194,7 @@ touch /etc/default/locale
 
 
 _log "Updating clock timestamp"
-touch /etc/sync_clock_timestamp
-
+touch /data/clock/timestamp
 
 _log "Exiting the chroot"
 exit 0
