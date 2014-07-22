@@ -1,2 +1,2 @@
-deb  http://uk.voyage.hk/dists/0.9  ./
-deb  http://de.voyage.hk/dists/experimental  ./
+deb  http://de.voyage.hk/dists/0.9  ./
+#deb http://ch.voyage.hk/dists/experimental  ./
