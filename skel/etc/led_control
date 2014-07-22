@@ -52,7 +52,11 @@ case $COMMAND in
         ;;
 
     disk)
-	echo "ide-disk"   > ${LED_DIR}/trigger
+        if [ -f ${LED_DIR}/trigger ] ; then
+            echo "ide-disk"   > ${LED_DIR}/trigger
+        else 
+            echo "WARNING: ${LED_DIR}/trigger not present!"
+        fi
         ;;
 
     net)
