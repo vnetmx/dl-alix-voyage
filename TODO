@@ -1,15 +1,85 @@
+TODO soon:
+ * "shutdown" seems to only 'stop' /etc/rcS.d/ services, and not enter /etc/rc0|6.d/
+ * try 'remountro' via cron
+ * update .conf sample file
+ * sync_clock start different from cron: produces output
+ * put 'enable' into prepare_serial and sync_clock themselves
 
-TODOs:
+
+TODO later:
+ * Don't do 'prepare_serial' on COM[12] when it is used by inittab
+ * Speed up SSH
+ * Mail after each reboot
+ * Mail after deployment
+ * Nagios-monitor RW/RO
+ * More dynamic motd (current debian version)
+ * Home dir of 'admin' in /data? Only if /root is still accessible directly
+ * /var/log on /data? (See voyage-sync 'mount back')
+
+
+TODO DLBI:
+ * split off data dirs! But: .pyc files?
+
+
+DONE:
  * Create partitions /opt/ and /data/
  * Test whether CF is mounted
  * Allow if's to become active later
  * Add verbosity
- * Make the VPN cert generally available, in particular for 'ssl-cert'
  * Fix apt-get error "WARNING: The following packages cannot be authenticated!"
- * Configure munin
- * create /var/lib/munin
- * Create admin account
- * Harden SSH
+ * postfix deals with read-only
+ * Make sync_clock timestamp work with read-only /
+ * Make hwclock's /etc/adjtime work with read-only /
+ * Boot delay 1sec
+ * Better MOTD banner
 
-DLBI:
- * split off data dirs! But: .pyc files?
+
+============
+Current shutdown order:
+
+root@dad0021:~# telinit 0
+INIT: Sending pnocatsplash daemon disabled - read /etc/default/nocatsplash.
+[....] Stopping watchdog daemon.... ok 
+[....] Starting watchdog keepalive daemon.... ok 
+[  166.581218] Ebtables v2.0 registered
+[  166.669660] Bridge firewalling registered
+[....] Clearing ebtables rulesets: filter nat broute[  166.804442] Ebtables v2.0 unregistered
+ done. ok 
+ [....] Network Interface Plugging Daemon...stop eth0...done.
+ [....] Stopping resolvconf...done.
+ [....] Stopping system log daemon: syslogd. ok 
+ [info] Saving the system clock.
+ [info] Hardware Clock updated to Tue Jul 22 21:24:34 GMT 2014.
+ [....] Asking all remaining processes to terminate...done.
+ [....] All processes ended within 6 seconds...done.
+ [....] Deconfiguring network interfaces...Internet Systems Consortium DHCP Client 4.2.2
+ Copyright 2004-2011 Internet Systems Consortium.
+ All rights reserved.
+ For info, please visit https://www.isc.org/software/dhcp/
+
+ Listening on LPF/eth0/00:0d:b9:33:32:48
+ Sending on   LPF/eth0/00:0d:b9:33:32:48
+ Sending on   Socket/fallback
+ DHCPRELEASE on eth0 to 192.168.1.254 port 67
+ done.
+ voyage-sync: Stop tmpfs...
+ voyage-sync: Synchronizing tmpfs changed files...
+ voyage-sync:   Sync'ing /var/log to /.sync/var
+ voyage-sync:   Sync'ing /var/tmp to /.sync/var
+ voyage-sync: Wait until all sync complete.
+ voyage-sync: Synchronization tmpfs completed
+ voyage-sync:   Unmount'ing /var/log
+ voyage-sync:   Sync'ing /.sync/var/log to /var
+ voyage-sync:   Unmount'ing /var/tmp
+ voyage-sync:   Sync'ing /.sync/var/tmp to /var
+ voyage-sync: Wait until all sync complete.
+ voyage-sync: Stop tmpfs completed
+ [....] Unmounting temporary filesystems...done.
+ [....] Deactivating swap...done.
+ [....] Unmounting local filesystems...done.
+ [info] Will now halt.
+ Switching off LEDs ... done.
+ [  182.084702] Shutdown: hda
+ [  182.089961] Disabling non-boot CPUs ...
+ [  182.090511] System halted.
+
