@@ -1,16 +1,17 @@
 
 
-
-
-##################################################################
-#                                                                #
-# Welcome! Your have logged into a Data Acquisition Device (DAD) #
-# by Demand Logic Ltd  http://www.demandlogic.co.uk/             #
-#                                                                #
-# Hostname:     __HOSTNAME__
-# Contact:      hostmaster@demandlogic.co.uk                     #
-# Based on:     Voyage Linux __VOYAGE_VERSION__
-# Deploy date:  __DATE__
-#                                                                #
-##################################################################
+    +-----------------------------------------------------------+
+    |                                                           |
+    |  Welcome!                                                 |
+    |                                                           |
+    |  Your have logged into a Data Acquisition Device (DAD)    |
+    |  by Demand Logic Ltd  http://www.demandlogic.co.uk/       |
+    |                                                           |
+    |  Contact:    hostmaster@demandlogic.co.uk                 |
+    |  Distro:     __VOYAGE_VERSION__
+    |  Based on:   __BASED_ON__
+    |  Deployed:   __DEPLOY_DATE__
+    |  Hostname:   [See prompt below]                           |
+    |                                                           |
+    +-----------------------------------------------------------+
 
