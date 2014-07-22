@@ -109,8 +109,8 @@ CLOCK_SYNCED_FILE="/var/run/clock_synced"
 
 # The TIMESTAMP_FILE helps to estimate the correct date at boot time
 # Should live on a reboot-safe r/w partition!
-#TIMESTAMP_FILE="/data/timestamp"
-TIMESTAMP_FILE="/etc/sync_clock_timestamp"
+TIMESTAMP_FILE="/data/clock/timestamp"
+#TIMESTAMP_FILE="/etc/sync_clock_timestamp"
 
 # End of CONFIGURE
 #############################################################################
