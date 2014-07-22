@@ -38,7 +38,7 @@ MNTPNT="/mnt/cf"
 ROOTFS_SIZE="+800M"
 OPT_FS_SIZE="+500M"
 
-VER="0.9.2"
+VER="0.9.1"
 DIST_BASE=${PWD}
 DIST_DIR=${DIST_BASE}/voyage-${VER}
 APT_CACHE=${DIST_BASE}/voyage-apt-cache
@@ -63,7 +63,7 @@ VPN_TA_KEY="ta.key"
 VPN_REMOTE='vpn.example.com 1194'
 
 BINDMOUNTS="/proc /sys /dev /dev/pts"
-UMOUNTS="${APT_CACHE_MP} /"
+UMOUNTS="${APT_CACHE_MP} /data /opt /"
 for fs in ${BINDMOUNTS} ; do
     UMOUNTS="${fs} ${UMOUNTS}"
 done
@@ -99,6 +99,21 @@ _mount() {
     else     
         _log "    Mounting ${CFDEV}1 as DAD root ${MNTPNT}"
         mount ${CFDEV}1 ${MNTPNT}
+    fi
+
+    if grep -q " ${MNTPNT}/opt " /proc/mounts ; then
+        _log "    ${CFDEV}2 already mounted as ${MNTPNT}/opt"
+    else     
+        _log "    Mounting ${CFDEV}2 as DAD root ${MNTPNT}/opt"
+        mount ${CFDEV}2 ${MNTPNT}/opt
+    fi
+
+    if grep -q " ${MNTPNT}/data " /proc/mounts ; then
+        _log "    ${CFDEV}3 already mounted as ${MNTPNT}/data"
+    else     
+        _log "    Mounting ${CFDEV}2 as DAD root ${MNTPNT}/data"
+        [ -d ${MNTPNT}/data ] || mkdir ${MNTPNT}/data
+        mount ${CFDEV}3 ${MNTPNT}/data
     fi
 
     for fs in ${BINDMOUNTS} ; do
@@ -257,7 +272,11 @@ echo " "
 #########################
 _log "ENDED STAGE 3/5: Configure Voyage Linux (1/2) from the host system"
 
-_log "Creating install dir ${DIST_DIR} if it doesn't exist"
+
+_log "Writing /etc/voyage_version"
+echo "$VER" > ${MNTPNT}/etc/voyage_version
+
+
 _log "Copying DNS resolver setting from host system"
 cat /etc/resolv.conf > ${MNTPNT}/run/resolvconf/resolv.conf
 
@@ -275,6 +294,7 @@ EOF
 
 
 _log "rsync'ing skeleton directory into DAD root"
+touch ${SKEL}/data/timestamp
 chown -R 0:0 ${SKEL}
 chmod -R go-w ${SKEL}
 rsync -a ${SKEL}/ ${MNTPNT}/
