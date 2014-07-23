@@ -1,4 +1,8 @@
 TODO soon:
+ * Disable or fix cron jobs that want to write to /
+   /etc/cron.daily/apt (apt.extended_states)
+   /etc/cron.daily/dpkg (dpkg.status)
+   /etc/cron.daily/passwd (/etc/{passwd,group,shadow,gshadow}.bak)
  * Make sure supervisord/dlbi (and other daemons) get stopped gracefully on shutdown
  * Add "enable|disable" option to all our init scripts and call that
  * Make "init-script enable" smart to identify default or legacy mode
