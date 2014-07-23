@@ -8,7 +8,7 @@
     |  by Demand Logic Ltd  http://www.demandlogic.co.uk/       |
     |                                                           |
     |  Contact:    hostmaster@demandlogic.co.uk                 |
-    |  Distro:     __VOYAGE_VERSION__
+    |  OS:         __VOYAGE_VERSION__
     |  Based on:   __BASED_ON__
     |  Deployed:   __DEPLOY_DATE__
     |  Hostname:   [See prompt below]                           |
