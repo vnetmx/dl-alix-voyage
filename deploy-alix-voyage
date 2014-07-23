@@ -246,7 +246,7 @@ mkdir -p $DIST_BASE
 
 if ! [ -d ${DIST_DIR} ] ; then
     VOYAGE_TARBALL="voyage-${VER}.tar.bz2"
-    VOYAGE_URL="http://uk.voyage.hk/download/voyage/${VOYAGE_TARBALL}"
+    VOYAGE_URL="http://de.voyage.hk/download/voyage/${VOYAGE_TARBALL}"
     _log "Fetching Voyage binary distribution tarball ${VOYAGE_URL}"
     (
         cd $DIST_BASE
