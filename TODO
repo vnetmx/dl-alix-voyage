@@ -1,9 +1,10 @@
 TODO soon:
- * "shutdown" seems to only 'stop' /etc/rcS.d/ services, and not enter /etc/rc0|6.d/
+ * Add "enable|disable" option to all our init scripts and call that
+ * Make "init-script enable" smart to identify default or legacy mode
+ * Re-enable 'default' startup, but without concurrency
  * try 'remountro' via cron
  * update .conf sample file
- * sync_clock start different from cron: produces output
- * put 'enable' into prepare_serial and sync_clock themselves
+ * sync_clock 'start' at bootup different from called by cron: produces output
 
 
 TODO later:
@@ -22,6 +23,9 @@ TODO DLBI:
 
 
 DONE:
+ * Dont configure COM1 serial when DONT_DISABLE_SERIAL=yes
+ * Re-ordered legacy startup order
+ * Re-enabled shutdown LEDs in legacy mode
  * Create partitions /opt/ and /data/
  * Test whether CF is mounted
  * Allow if's to become active later
