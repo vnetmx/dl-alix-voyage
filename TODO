@@ -1,8 +1,9 @@
 TODO soon:
+ * Make sure supervisord/dlbi (and other daemons) get stopped gracefully on shutdown
  * Add "enable|disable" option to all our init scripts and call that
  * Make "init-script enable" smart to identify default or legacy mode
  * Re-enable 'default' startup, but without concurrency
- * try 'remountro' via cron
+ * Try 'remountro' regularly via cron
  * sync_clock 'start' at bootup different from called by cron: produces output
 
 
@@ -14,7 +15,8 @@ TODO later:
 
 
 TODO DLBI:
- * split off data dirs! But: .pyc files?
+ * Split off re-write dirs (state, logs) from /opt to /data
+  * Make /opt read-only (But: hwo to .pyc files get created?)
 
 
 DONE:
