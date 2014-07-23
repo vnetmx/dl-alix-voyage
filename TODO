@@ -3,18 +3,13 @@ TODO soon:
  * Make "init-script enable" smart to identify default or legacy mode
  * Re-enable 'default' startup, but without concurrency
  * try 'remountro' via cron
- * update .conf sample file
  * sync_clock 'start' at bootup different from called by cron: produces output
 
 
 TODO later:
  * Don't do 'prepare_serial' on COM[12] when it is used by inittab
- * Speed up SSH
- * Mail after each reboot
- * Mail after deployment
  * Nagios-monitor RW/RO
  * More dynamic motd (current debian version)
- * Home dir of 'admin' in /data? Only if /root is still accessible directly
  * /var/log on /data? (See voyage-sync 'mount back')
 
 
@@ -23,6 +18,10 @@ TODO DLBI:
 
 
 DONE:
+ * Speed up SSH
+ * Mail after each reboot
+ * Moved /home into RW /data partition
+ * update .conf sample file
  * Dont configure COM1 serial when DONT_DISABLE_SERIAL=yes
  * Re-ordered legacy startup order
  * Re-enabled shutdown LEDs in legacy mode
