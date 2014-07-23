@@ -3,7 +3,9 @@ MNTPNT="/mnt/cf"
 ROOTFS_SIZE="+1G"
 OPT_FS_SIZE="+1G"
 
-VER="0.9.2"
+VER="0.9.1"
+CFDEV_VOYAGE=hda    # 'hda' for <= 0.9.1,  'sda' for >= 0.9.2
+
 DIST_BASE=/home/admin/DAD
 DIST_DIR=${DIST_BASE}/voyage-${VER}
 APT_CACHE=${DIST_BASE}/voyage-apt-cache
@@ -13,11 +15,13 @@ HOSTNAME="dad00XY.dlnode.com"
 ROOTALIAS="hostmaster@demandlogic.co.uk"
 RELAYHOST="smtp.dlnode.com"
 
-SSH_KEYS="nils.toedtmann.dsa.pub"
+SSH_KEYS="nils.toedtmann.dsa.pub dan.mauger.rsa.pub joe.short.dsa.pub"
 SSH_KEY_REPO="https://raw.githubusercontent.com/nilstoedtmann/sshkeys/master"
 
 CA_BASE=${DIST_BASE}/certificates
 VPN_CLIENT_CERT=${HOSTNAME}.crt
 VPN_CLIENT_KEY=${HOSTNAME}.key
 VPN_TA_KEY="vpn.dlnode.com-TLS-handshake-HMAC.key"
-VPN_REMOTE='vpn.dlnode.com 1194'
+VPN_REMOTE="vpn.dlnode.com 1194"
+
+DONT_DISABLE_SERIAL="NO"
