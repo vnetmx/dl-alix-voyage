@@ -1,0 +1,5 @@
+#!/bin/sh
+
+s="`hostname` startup complete `date -u +'%Y/%m/%d %T'`UTC"
+echo "${s}" | mail -s  "${s}" root
+
