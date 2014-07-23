@@ -145,13 +145,20 @@ mkdir /run/sudo
 
 
 _log "Making sure our ALIX services get started at boot time"
-for service in leds reset_button prepare_serial ; do 
-    /usr/sbin/update-rc.d $service defaults
-done
+#  This is for 'legacy mode' start up, enforced by the presence of
+#  an empty file /etc/init.d/.legacy-bootordering:
+#
+/usr/sbin/update-rc.d  leds            start 10 S         .  stop 01 0   6 .
 /usr/sbin/update-rc.d  sync_clock      start 10 S 2 3 4 5 .  stop 90 0 1 6 .
-/usr/sbin/update-rc.d  prepare_serial  start 91   2 3 4 5 .
-#/usr/sbin/update-rc.d  prepare_serial  start 10 S .
+/usr/sbin/update-rc.d  prepare_serial  start 20 S         .
+/usr/sbin/update-rc.d  reset_button    start 90   2 3 4 5 .  stop 90 0 1 6 .
 
+#  This would be for 'default mode' start up (where LSB comment headers 
+#  are used to calculate dependency and runlevel information on-the-fly):
+#
+#for service in sync_clock reset_button prepare_serial leds ; do 
+#    /usr/sbin/update-rc.d $service defaults
+#done
 
 _log "Disabling Voyages default LED handler, we are taking care of the LEDs ourselves"
 sed   -e 's/^VOYAGE_LEDS=.*$/VOYAGE_LEDS="NO"/'  -i /etc/default/voyage-util
@@ -181,8 +188,10 @@ else
     sed -e 's/^\(terminal serial.*\)$/#\1/'  -i  /boot/grub/menu.lst
     # ... of the kernel:
     sed -e 's/console=[^ ]*//' -i  /boot/grub/menu.lst
-    # ... and of the OS: 
+    # ... of the OS: 
     sed -e 's/^\(T.* ttyS0 .*\)$/#\1/' -i  /etc/inittab
+    # ... and set serial parameters:
+    sed -e 's/^\(#TTYS0\)/\1/' /etc/default/prepare_serial
 
     _log "Reducing GRUB timeout to 1sec"
     sed -e 's/^timeout .*$/timeout 1/'  -i /boot/grub/menu.lst
