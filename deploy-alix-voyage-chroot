@@ -58,13 +58,18 @@ export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 
 
 _log "Creating MOTD"
-VOYAGE_VERSION="Voyage Linux `cat /etc/voyage_version`"
+VOYAGE_VERSION=`cat /etc/voyage_version`
 BASED_ON=`grep -r "Voyage ${VOYAGE_VERSION}" /README | sed -e's/^  *\* /Debian /' -e 's/\ - .*$//' -e 's/, /, Linux kernel /'`
 DEPLOY_DATE=`date +%Y-%m-%d`
 cat /etc/motd.dl.template | sed \
-    -e "s/__VOYAGE_VERSION__/${VOYAGE_VERSION}/" \
+    -e "s/__VOYAGE_VERSION__/Voyage Linux ${VOYAGE_VERSION}/" \
     -e "s/__BASED_ON__/${BASED_ON}/"  \
     -e "s/__DEPLOY_DATE__/${DEPLOY_DATE}/" > /etc/motd
+
+
+_log "Moving /home into /data"
+mv /home /data/
+ln -s /data/home/ /
 
 
 _log "Moving /var/spool into /data"
