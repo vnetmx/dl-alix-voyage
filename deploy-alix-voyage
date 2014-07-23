@@ -294,7 +294,6 @@ EOF
 
 
 _log "rsync'ing skeleton directory into DAD root"
-touch ${SKEL}/data/timestamp
 chown -R 0:0 ${SKEL}
 chmod -R go-w ${SKEL}
 rsync -a ${SKEL}/ ${MNTPNT}/
