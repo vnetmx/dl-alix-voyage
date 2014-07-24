@@ -1,20 +1,17 @@
 TODO soon:
+ * Enable getty on ttyS1/COM2
  * Make the deploy-alix-voyage-chroot variable DONT_DISABLE_SERIAL 
    (and possibly others) configurable in deploy-alix-voyage.conf
- * Disable or fix cron jobs that want to write to /
-   /etc/cron.daily/apt (apt.extended_states)
-   /etc/cron.daily/dpkg (dpkg.status)
-   /etc/cron.daily/passwd (/etc/{passwd,group,shadow,gshadow}.bak)
- * Make sure supervisord/dlbi (and other daemons) get stopped gracefully on shutdown
  * Add "enable|disable" option to all our init scripts and call that
- * Make "init-script enable" smart to identify default or legacy mode
- * Re-enable 'default' startup, but without concurrency
+ * Make "$initscript enable" smart to distinguish 'default' and 'legacy' mode
+ * Re-enable 'default' startup (Possibly without concurrency?)
+ * Think about the best place to activate LED blinking during boot/shutdown
  * Try 'remountro' regularly via cron
  * sync_clock 'start' at bootup different from called by cron: produces output
 
 
 TODO later:
- * Don't do 'prepare_serial' on COM[12] when it is used by inittab
+ * Automagically don't 'prepare_serial' for ttys with inittab gettys
  * Nagios-monitor RW/RO
  * More dynamic motd (current debian version)
  * /var/log on /data? (See voyage-sync 'mount back')
@@ -22,10 +19,12 @@ TODO later:
 
 TODO DLBI:
  * Split off re-write dirs (state, logs) from /opt to /data
-  * Make /opt read-only (But: hwo to .pyc files get created?)
+ * Make /opt read-only (But: hwo to .pyc files get created?)
 
 
 DONE:
+ * Fixed shutdown in legacy SysVinit mode so all daemons get stopped gracefully
+ * Fixed /etc/cron.daily/{apt,dpkg,passwd} that want to write to /
  * Speed up SSH
  * Mail after each reboot
  * Moved /home into RW /data partition
