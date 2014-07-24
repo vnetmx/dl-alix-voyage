@@ -1,4 +1,6 @@
 TODO soon:
+ * Make the deploy-alix-voyage-chroot variable DONT_DISABLE_SERIAL 
+   (and possibly others) configurable in deploy-alix-voyage.conf
  * Disable or fix cron jobs that want to write to /
    /etc/cron.daily/apt (apt.extended_states)
    /etc/cron.daily/dpkg (dpkg.status)
