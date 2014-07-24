@@ -30,6 +30,9 @@
 # onto a compact flash card (CF) for a PC Engine ALIX board
 #######################################################################
 
+DONT_DISABLE_SERIAL="NO"
+RW_PARTITION=/data
+MOVE_TO_RW="/home /var/spool /var/backup /var/lib/postfix /var/lib/apt"
 
 DEL_PACKAGES="dnsmasq rpcbind hostapd wireless-regdb wpasupplicant"
 PRE_PACKAGES="dialog debconf"
@@ -37,7 +40,7 @@ PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procma
 PACKAGES_DLBI="supervisor subversion python python-dev libevent-dev gcc python-pip"
 PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
-DONT_DISABLE_SERIAL="YES"
+
 
 
 ####################
@@ -65,16 +68,6 @@ cat /etc/motd.dl.template | sed \
     -e "s/__VOYAGE_VERSION__/Voyage Linux ${VOYAGE_VERSION}/" \
     -e "s/__BASED_ON__/${BASED_ON}/"  \
     -e "s/__DEPLOY_DATE__/${DEPLOY_DATE}/" > /etc/motd
-
-
-_log "Moving /home into /data"
-mv /home /data/
-ln -s /data/home/ /
-
-
-_log "Moving /var/spool into /data"
-mv /var/spool /data/var-spool
-ln -s /data/var-spool/ /var/spool
 
 
 _log "Removing undesired packages ${DEL_PACKAGES}"
@@ -123,14 +116,18 @@ DHC_PID="/var/run/dhclient.eth0.pid"
 [ -f ${DHC_PID} ] && kill -HUP `cat ${DHC_PID}` && rm ${DHC_PID}
 
 
-_log "Moving /var/lib/postfix into /data"
-mv /var/lib/postfix/ /data/var-lib-postfix 
-ln -s /data/var-lib-postfix/ /var/lib/postfix 
+_log "Moving directories ${MOVE_TO_RW} from read-only / to read-write ${RW_PARTITION}"
+for source_dir in ${MOVE_TO_RW}; do
+    target_dir="${RW_PARTITION}/`echo ${source_dir} | sed -e 's,^/,,' -e 's,/,-,g'`"
+    mv    ${source_dir}  ${target_dir}
+    ln -s ${target_dir}/ ${source_dir}
+done
 
 
-_log "Moving /etc/adjtime into /data"
-mv /etc/adjtime  /data/clock/
-ln -s /data/clock/adjtime /etc/adjtime
+_log "Moving /etc/adjtime into ${RW_PARTITION}"
+mkdir -p ${RW_PARTITION}/clock
+mv /etc/adjtime  ${RW_PARTITION}/clock/
+ln -s ${RW_PARTITION}/clock/adjtime /etc/adjtime
 
 
 _log "Cleaning up package cache"
