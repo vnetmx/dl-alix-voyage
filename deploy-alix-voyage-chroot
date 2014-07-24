@@ -32,7 +32,7 @@
 
 DONT_DISABLE_SERIAL="NO"
 RW_PARTITION=/data
-MOVE_TO_RW="/home /var/spool /var/backup /var/lib/postfix /var/lib/apt"
+MOVE_TO_RW="/home /var/spool /var/backups /var/lib/postfix /var/lib/apt"
 
 DEL_PACKAGES="dnsmasq rpcbind hostapd wireless-regdb wpasupplicant"
 PRE_PACKAGES="dialog debconf"
@@ -68,6 +68,19 @@ cat /etc/motd.dl.template | sed \
     -e "s/__VOYAGE_VERSION__/Voyage Linux ${VOYAGE_VERSION}/" \
     -e "s/__BASED_ON__/${BASED_ON}/"  \
     -e "s/__DEPLOY_DATE__/${DEPLOY_DATE}/" > /etc/motd
+
+
+_log "Fixing runlevel priorities of Voyage/Debian scripts"
+for rl in 0 6 ; do 
+    for s in /etc/rc${rl}.d/K[01]* ; do
+        s2=${s#/etc/rc$rl.d/K}
+        s3=${s2#[0-9][0-9]}
+        old_prio=${s2%%[a-zA-Z]*}
+        old_prio=${old_prio#0}
+        new_prio=$((80+old_prio))
+        mv $s  /etc/rc${rl}.d/K${new_prio}${s3}
+    done
+done
 
 
 _log "Removing undesired packages ${DEL_PACKAGES}"
@@ -178,6 +191,10 @@ sed -e 's/^ENABLED=.*$/ENABLED=yes/' -i /etc/ufw/ufw.conf
 
 _log "Disabling useless /etc/network/if-up.d/ntpdate, we have our better sync_time"
 chmod -x /etc/network/if-up.d/ntpdate
+
+
+_log "Enable console on internal ALIX riser COM2/ttyS1"
+sed -e '/ttyS1/s,^#T1:.*$,T1:23:respawn:/sbin/getty -L ttyS1 38400,' -i /etc/inittab
 
 
 # See https://apps.demandlogic.org/trac/wiki/Serial
