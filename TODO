@@ -1,5 +1,4 @@
 TODO soon:
- * Enable getty on ttyS1/COM2
  * Make the deploy-alix-voyage-chroot variable DONT_DISABLE_SERIAL 
    (and possibly others) configurable in deploy-alix-voyage.conf
  * Add "enable|disable" option to all our init scripts and call that
@@ -8,6 +7,7 @@ TODO soon:
  * Think about the best place to activate LED blinking during boot/shutdown
  * Try 'remountro' regularly via cron
  * sync_clock 'start' at bootup different from called by cron: produces output
+ * Consider to uninstall Debian live packages
 
 
 TODO later:
@@ -23,6 +23,7 @@ TODO DLBI:
 
 
 DONE:
+ * Enable getty on ttyS1/COM2
  * Fixed shutdown in legacy SysVinit mode so all daemons get stopped gracefully
  * Fixed /etc/cron.daily/{apt,dpkg,passwd} that want to write to /
  * Speed up SSH
@@ -42,54 +43,4 @@ DONE:
  * Make hwclock's /etc/adjtime work with read-only /
  * Boot delay 1sec
  * Better MOTD banner
-
-
-============
-Current shutdown order:
-
-root@dad0021:~# telinit 0
-INIT: Sending pnocatsplash daemon disabled - read /etc/default/nocatsplash.
-[....] Stopping watchdog daemon.... ok 
-[....] Starting watchdog keepalive daemon.... ok 
-[  166.581218] Ebtables v2.0 registered
-[  166.669660] Bridge firewalling registered
-[....] Clearing ebtables rulesets: filter nat broute[  166.804442] Ebtables v2.0 unregistered
- done. ok 
- [....] Network Interface Plugging Daemon...stop eth0...done.
- [....] Stopping resolvconf...done.
- [....] Stopping system log daemon: syslogd. ok 
- [info] Saving the system clock.
- [info] Hardware Clock updated to Tue Jul 22 21:24:34 GMT 2014.
- [....] Asking all remaining processes to terminate...done.
- [....] All processes ended within 6 seconds...done.
- [....] Deconfiguring network interfaces...Internet Systems Consortium DHCP Client 4.2.2
- Copyright 2004-2011 Internet Systems Consortium.
- All rights reserved.
- For info, please visit https://www.isc.org/software/dhcp/
-
- Listening on LPF/eth0/00:0d:b9:33:32:48
- Sending on   LPF/eth0/00:0d:b9:33:32:48
- Sending on   Socket/fallback
- DHCPRELEASE on eth0 to 192.168.1.254 port 67
- done.
- voyage-sync: Stop tmpfs...
- voyage-sync: Synchronizing tmpfs changed files...
- voyage-sync:   Sync'ing /var/log to /.sync/var
- voyage-sync:   Sync'ing /var/tmp to /.sync/var
- voyage-sync: Wait until all sync complete.
- voyage-sync: Synchronization tmpfs completed
- voyage-sync:   Unmount'ing /var/log
- voyage-sync:   Sync'ing /.sync/var/log to /var
- voyage-sync:   Unmount'ing /var/tmp
- voyage-sync:   Sync'ing /.sync/var/tmp to /var
- voyage-sync: Wait until all sync complete.
- voyage-sync: Stop tmpfs completed
- [....] Unmounting temporary filesystems...done.
- [....] Deactivating swap...done.
- [....] Unmounting local filesystems...done.
- [info] Will now halt.
- Switching off LEDs ... done.
- [  182.084702] Shutdown: hda
- [  182.089961] Disabling non-boot CPUs ...
- [  182.090511] System halted.
 
