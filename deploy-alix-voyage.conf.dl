@@ -23,5 +23,3 @@ VPN_CLIENT_CERT=${HOSTNAME}.crt
 VPN_CLIENT_KEY=${HOSTNAME}.key
 VPN_TA_KEY="vpn.dlnode.com-TLS-handshake-HMAC.key"
 VPN_REMOTE="vpn.dlnode.com 1194"
-
-DONT_DISABLE_SERIAL="NO"
