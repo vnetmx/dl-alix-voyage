@@ -23,6 +23,7 @@ TODO DLBI:
 
 
 DONE:
+ * Move /var/cache to /data
  * Enable getty on ttyS1/COM2
  * Fixed shutdown in legacy SysVinit mode so all daemons get stopped gracefully
  * Fixed /etc/cron.daily/{apt,dpkg,passwd} that want to write to /

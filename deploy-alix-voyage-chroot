@@ -32,7 +32,7 @@
 
 DONT_DISABLE_SERIAL="NO"
 RW_PARTITION=/data
-MOVE_TO_RW="/home /var/spool /var/backups /var/lib/postfix /var/lib/apt"
+MOVE_TO_RW="/home /var/spool /var/cache /var/backups /var/lib/postfix /var/lib/apt"
 
 DEL_PACKAGES="dnsmasq rpcbind hostapd wireless-regdb wpasupplicant"
 PRE_PACKAGES="dialog debconf"
