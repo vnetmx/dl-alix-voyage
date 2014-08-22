@@ -1,4 +1,6 @@
 TODO soon:
+ * Generate SSH keys in first stage, display them, and seed them into 
+   local known_hosts file
  * Make the deploy-alix-voyage-chroot variable DONT_DISABLE_SERIAL 
    (and possibly others) configurable in deploy-alix-voyage.conf
  * Add "enable|disable" option to all our init scripts and call that
