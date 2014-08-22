@@ -347,7 +347,6 @@ _log "Configuring OpenVPN"
     ln -s ${VPN_CLIENT_CERT} client.crt
     ln -s ${VPN_CLIENT_KEY}  client.key
 )
-sed -e "s/^remote.*$/remote $VPN_REMOTE/" -i ${MNTPNT}/etc/openvpn/client.conf
 
 
 # TODO: Configure SmartHost for Postfix
