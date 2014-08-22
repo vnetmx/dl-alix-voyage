@@ -42,8 +42,7 @@ PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
 
 APT_CACHE_MP="/tmp/var-cache-apt"
-APT_GET="apt-get "
-#APT_GET="apt-get -o Dir::Cache=${APT_CACHE_MP}"
+APT_GET="apt-get -o Dir::Cache=${APT_CACHE_MP}"
 
 
 ####################

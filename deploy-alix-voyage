@@ -130,6 +130,7 @@ _mount() {
         _log "    ${APT_CACHE} already bind-mouted as ${MNTPNT}${APT_CACHE_MP}"
     else
         _log "    Bind-mounting ${APT_CACHE} into DAD root ${MNTPNT}${APT_CACHE_MP}"
+        mkdir -p ${MNTPNT}${APT_CACHE_MP}
         mount -o bind ${APT_CACHE} ${MNTPNT}${APT_CACHE_MP}
     fi
 
