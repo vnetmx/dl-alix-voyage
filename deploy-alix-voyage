@@ -42,7 +42,8 @@ VER="0.9.1"
 DIST_BASE=${PWD}
 DIST_DIR=${DIST_BASE}/voyage-${VER}
 APT_CACHE=${DIST_BASE}/voyage-apt-cache
-APT_CACHE_MP="/var/cache/apt"
+#APT_CACHE_MP="/var/cache/apt"
+APT_CACHE_MP="/tmp/var-cache-apt"
 CHNAME=${DIST_BASE}/chname/chname
 
 BASE="$(cd "$(dirname "$0")" ; pwd)"

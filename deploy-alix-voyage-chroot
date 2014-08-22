@@ -41,6 +41,9 @@ PACKAGES_DLBI="supervisor subversion python python-dev libevent-dev gcc python-p
 PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
 
+APT_CACHE_MP="/tmp/var-cache-apt"
+APT_GET="apt-get "
+#APT_GET="apt-get -o Dir::Cache=${APT_CACHE_MP}"
 
 
 ####################
@@ -84,11 +87,11 @@ done
 
 
 _log "Removing undesired packages ${DEL_PACKAGES}"
-apt-get -y remove --purge ${DEL_PACKAGES}
+$APT_GET -y remove --purge ${DEL_PACKAGES}
 
 
 _log "Autoremoving stale dependancies"
-apt-get -y autoremove
+$APT_GET -y autoremove
 
 
 _log "Importing APT key for Voyage's experimental repo" 
@@ -96,11 +99,11 @@ apt-key add /tmp/voyage-experimental.key
 
 
 _log "Updating repository meta data"
-apt-get update
+$APT_GET update
 
 
 _log "Installing pre-requirements ${PRE_PACKAGES}"
-apt-get -y install ${PRE_PACKAGES}
+$APT_GET -y install ${PRE_PACKAGES}
 
 
 _log "Preconfiguring choices for to-be-installed packages"
@@ -114,11 +117,11 @@ echo "linux-image-3.10.11-voyage    linux-image-3.10.11-voyage/preinst/overwriti
 
 
 _log "Upgrading system"
-apt-get -y upgrade
+$APT_GET -y upgrade
 
 
 _log "Installing packages ${PACKAGES}"
-apt-get -y install ${PACKAGES}
+$APT_GET -y install ${PACKAGES}
 
 
 _log "Stopping any services that might be running after their installation"
@@ -144,7 +147,7 @@ ln -s ${RW_PARTITION}/clock/adjtime /etc/adjtime
 
 
 _log "Cleaning up package cache"
-apt-get clean 
+$APT_GET clean 
 
 
 _log "Setting random root password"
