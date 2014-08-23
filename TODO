@@ -1,4 +1,7 @@
 TODO soon:
+ * Make syslog generate far less logfiles
+ * Make syslog copy-log to data partition too
+ * Add connection test to all DADs
  * Generate SSH keys in first stage, display them, and seed them into 
    local known_hosts file
  * Make the deploy-alix-voyage-chroot variable DONT_DISABLE_SERIAL 
