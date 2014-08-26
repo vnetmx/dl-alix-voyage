@@ -3,7 +3,8 @@
 CONFIG_FILE="/etc/connection-test.conf"
 
 DEVS="eth0"
-RESOLVCONF="/var/run/dnsmasq/resolv.conf"
+#RESOLVCONF="/var/run/dnsmasq/resolv.conf"
+RESOLVCONF="/etc/resolv.conf"
 DNS_TXT_RECORD="google.com"
 DNS_RESPONSE_EXPECTED="v=spf1 include:_spf.google.com ip4:216.73.93.70/31 ip4:216.73.93.72/31 ~all"
 PING_TARGETS="8.8.4.4"   # Google public DNS server
@@ -41,7 +42,7 @@ echo -n "date=`date -u +%Y.%m.%d-%H:%M:%S`; "
 ROUTER_LINE=`ip route | grep ^default`
 ROUTER_IP=`echo "${ROUTER_LINE}" | sed -e 's/^.*via //' | cut -d ' ' -f 1`
 DEFAULT_DEV=`echo "${ROUTER_LINE}" | sed -e 's/^.*dev //' | cut -d ' ' -f 1`
-DNS_IPS=`cat /var/run/dnsmasq/resolv.conf | grep ^nameserver | awk '{print $2}' | tr '\n' ' ' | sed -e 's/ $//' -e 's/  */+/g'`
+DNS_IPS=`cat $RESOLVCONF | grep ^nameserver | awk '{print $2}' | tr '\n' ' ' | sed -e 's/ $//' -e 's/  */+/g'`
 
 if echo "${DEVS}" | grep -q ${DEFAULT_DEV}; then
     :

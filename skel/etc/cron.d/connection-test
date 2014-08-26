@@ -1,4 +1,4 @@
 MAILTO=root
 
-*/10 *  * * *   root    /usr/local/sbin/connection-test  >>  /var/log/connection-test.log  2>&1
+*/10 *  * * *   root    /usr/local/sbin/connection-test  >>  /data/logs/connection-test.log  2>&1
 
