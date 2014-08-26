@@ -1,5 +1,4 @@
 
-
     +-----------------------------------------------------------+
     |                                                           |
     |  Welcome!                                                 |
@@ -11,7 +10,7 @@
     |  OS:         __VOYAGE_VERSION__
     |  Based on:   __BASED_ON__
     |  Deployed:   __DEPLOY_DATE__
-    |  Hostname:   [See prompt below]                           |
+    |  Hostname:   [See line above this box]                    |
     |                                                           |
     +-----------------------------------------------------------+
 
