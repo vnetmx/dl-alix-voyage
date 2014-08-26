@@ -34,9 +34,9 @@ DONT_DISABLE_SERIAL="NO"
 RW_PARTITION=/data
 MOVE_TO_RW="/home /var/spool /var/cache /var/backups /var/lib/postfix /var/lib/apt"
 
-DEL_PACKAGES="dnsmasq rpcbind hostapd wireless-regdb wpasupplicant"
+DEL_PACKAGES="dnsmasq rpcbind hostapd wireless-regdb wpasupplicant nocatsplash"
 PRE_PACKAGES="dialog debconf"
-PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump ufw hdparm"
+PACKAGES="ca-certificates postfix bsd-mailx supervisor munin-node ntpdate procmail openvpn screen ssl-cert telnet vim-nox arping iptraf tcpdump ufw hdparm bind9-host"
 PACKAGES_DLBI="supervisor subversion python python-dev libevent-dev gcc python-pip"
 PACKAGES="${PACKAGES} ${PACKAGES_DLBI}"
 # open{ssh,ssl,vpn}-blacklist?
@@ -225,6 +225,18 @@ touch /etc/default/locale
 
 _log "Updating clock timestamp"
 touch /data/clock/timestamp
+
+
+_log "Moving supervisor logs to /data/logs"
+sed -e 's,^logfile=/var/log/supervisor/supervisord.log,logfile=/data/logs/supervisor/supervisord.log,' \
+    -e 's,^childlogdir=/var/log/supervisor,childlogdir=/data/logs/supervisor,' \
+    -i /etc/supervisor/supervisord.conf
+
+
+_log "Adding /opt to /usr/local/sbin/remount{ro,rw}"
+echo "#mount -o remount,ro /opt"  >>  /usr/local/sbin/remountro
+echo "#mount -o remount,rw /opt"  >>  /usr/local/sbin/remountrw
+
 
 _log "Exiting the chroot"
 exit 0
