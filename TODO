@@ -1,6 +1,10 @@
 TODO soon:
+ * Decrease size of /opt/ to 250MB
+ * log rotation for /data/logs/*
+ * Set a default passwords (root & admin) batched
  * [DLBI] Generate .pyc files (if any) at install time
  * Make /opt read-only
+ * daily cron: apt-get clean
  * Generate SSH keys in first stage, display them, and seed them into 
    local known_hosts file
  * [mr-nilsson] Make prompt nice on serial
@@ -13,7 +17,8 @@ TODO soon:
  * Try 'remountro' regularly via cron
  * sync_clock 'start' at bootup different from called by cron: produces output
  * Consider to uninstall Debian live packages
-
+ * fsck /opt and /data at boot time
+ 
 
 TODO later:
  * Automagically don't 'prepare_serial' for ttys with inittab gettys

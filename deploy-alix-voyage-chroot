@@ -234,8 +234,8 @@ sed -e 's,^logfile=/var/log/supervisor/supervisord.log,logfile=/data/logs/superv
 
 
 _log "Adding /opt to /usr/local/sbin/remount{ro,rw}"
-echo "#mount -o remount,ro /opt"  >>  /usr/local/sbin/remountro
-echo "#mount -o remount,rw /opt"  >>  /usr/local/sbin/remountrw
+echo "mount -o remount,ro /opt"          >>  /usr/local/sbin/remountro
+echo "mount -o remount,rw,noatime /opt"  >>  /usr/local/sbin/remountrw
 
 
 _log "Exiting the chroot"

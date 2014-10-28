@@ -310,7 +310,7 @@ done
 
 _log "Adding partitions to fstab"
 mkdir -p ${MNTPNT}/{opt,data}
-echo "/dev/${CFDEV_VOYAGE}2      /opt    ext2   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
+echo "/dev/${CFDEV_VOYAGE}2      /opt    ext2   ro,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
 echo "/dev/${CFDEV_VOYAGE}3      /data   ext3   rw,noatime,errors=remount-ro    0 0" >>  ${MNTPNT}/etc/fstab
 
 
